@@ -25,7 +25,6 @@ class TaskType(Enum):
     CODE_ANALYSIS = "code_analysis"
     GENERIC_LLM = "generic_llm"
     FILESYSTEM = "filesystem"
-    LLM_SESSION = "llm_session"  # v0.2: Conversational LLM sessions
 
 
 @dataclass

@@ -447,7 +447,6 @@ def inspect_session(task_store: TaskStore):
 
 
 #   thats he main loop
-def main():
     """Main CLI loop."""
     print_banner()
 
@@ -473,12 +472,8 @@ def main():
             tail_events_display()
         elif choice == "8":
             list_available_tools()
-        elif choice == "9":
-            create_llm_session_task(task_store)
-        elif choice == "10":
-            inspect_session(task_store)
         elif choice == "0":
-            print("\nExiting Project ME v0.2. Goodbye!")
+            print("\nExiting Project ME v0.1. Goodbye!")
             break
         else:
             print("\nInvalid choice. Please try again.")
