@@ -446,7 +446,7 @@ def inspect_session(task_store: TaskStore):
     print()
 
 
-
+#   thats he main loop
 def main():
     """Main CLI loop."""
     print_banner()
