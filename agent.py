@@ -58,6 +58,8 @@ class Agent:
                 result = self._handle_filesystem_task(task)
             elif task.type == "code_analysis":
                 result = self._handle_code_analysis_task(task)
+            elif task.type == "llm_session":  # v0.2
+                result = self._handle_llm_session_task(task)
             else:
                 raise ValueError(f"Unknown task type: {task.type}")
 
@@ -244,6 +246,112 @@ class Agent:
             "success": True,
             "analysis": analysis,
             "filepath": filepath
+        }
+
+    def _handle_llm_session_task(self, task: Task) -> Dict[str, Any]:
+        """
+        Handle an LLM session task with rolling context. (v0.2)
+
+        Loads session history/summary, sends user message to LLM with context,
+        logs both prompt and response, and updates the session summary.
+        """
+        session_id = task.payload.get("session_id")
+        user_message = task.payload.get("message") or task.payload.get("prompt")
+        system_prompt = task.payload.get("system") or task.payload.get("system_prompt")
+
+        if not session_id:
+            raise ValueError("llm_session task requires 'session_id' in payload")
+        if not user_message:
+            raise ValueError("llm_session task requires 'message' or 'prompt' in payload")
+
+        print(f"LLM Session: {session_id}")
+        print(f"User message: {user_message[:200]}...")
+
+        # Log the user message
+        memory.log_event(
+            EventType.SESSION_MESSAGE,
+            data={
+                "session_id": session_id,
+                "message": user_message
+            },
+            task_id=task.id
+        )
+
+        # Build context from session history
+        existing_summary = memory.get_session_summary(session_id)
+        recent_messages = memory.get_session_messages(session_id, limit=5)
+
+        # Build messages list for LLM
+        messages = []
+
+        # System prompt
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        else:
+            messages.append({
+                "role": "system",
+                "content": "You are a helpful AI assistant. You are having an ongoing conversation with the user."
+            })
+
+        # Add summary as context if it exists
+        if existing_summary:
+            messages.append({
+                "role": "system",
+                "content": f"Summary of conversation so far:\n{existing_summary}"
+            })
+
+        # Add recent message history (exclude the current message which we'll add separately)
+        # Filter out the message we just logged
+        for msg in recent_messages[:-1] if recent_messages else []:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+
+        print(f"\nCalling LLM with {len(messages)} messages in context...")
+
+        # Call LLM
+        response = llm.chat(
+            messages=messages,
+            task_id=task.id
+        )
+
+        print(f"\nLLM Response:\n{response}")
+
+        # Log the response
+        memory.log_event(
+            EventType.SESSION_RESPONSE,
+            data={
+                "session_id": session_id,
+                "response": response
+            },
+            task_id=task.id
+        )
+
+        # Update session summary every few messages (check if we have 5+ messages)
+        all_messages = memory.get_session_messages(session_id)
+        if len(all_messages) >= 5 and len(all_messages) % 3 == 0:
+            print("\nUpdating session summary...")
+            new_summary = memory.generate_session_summary(
+                session_id=session_id,
+                llm_client=llm,
+                task_id=task.id
+            )
+            memory.store_session_summary(
+                session_id=session_id,
+                summary=new_summary,
+                task_id=task.id
+            )
+            print(f"Summary updated: {new_summary[:100]}...")
+
+        return {
+            "success": True,
+            "session_id": session_id,
+            "response": response,
+            "message_count": len(all_messages)
         }
 
 
