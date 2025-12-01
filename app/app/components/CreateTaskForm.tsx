@@ -54,11 +54,19 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
     setSuccess(false);
 
     try {
+      console.log('[CreateTaskForm] Submitting task:', { title, taskType, tags });
+
+      // Validate title
+      if (!title || title.trim().length === 0) {
+        throw new Error('Title is required');
+      }
+
       // Parse payload JSON
       let parsedPayload;
       try {
         parsedPayload = JSON.parse(payload);
       } catch (err) {
+        console.error('[CreateTaskForm] Invalid JSON:', err);
         throw new Error('Invalid JSON in payload');
       }
 
@@ -68,13 +76,14 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
         .map(t => t.trim())
         .filter(t => t.length > 0);
 
-      await createTask({
-        title: title || undefined,
+      const result = await createTask({
+        title: title.trim(),
         type: taskType,
         payload: parsedPayload,
         tags: parsedTags.length > 0 ? parsedTags : undefined,
       });
 
+      console.log('[CreateTaskForm] Task created:', result.task.id);
       setSuccess(true);
 
       // Reset form
@@ -85,8 +94,10 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
       // Notify parent
       setTimeout(() => {
         onTaskCreated?.();
-      }, 1000);
+        setSuccess(false);
+      }, 2000);
     } catch (err) {
+      console.error('[CreateTaskForm] Error:', err);
       setError(err instanceof Error ? err.message : 'Failed to create task');
     } finally {
       setLoading(false);
@@ -95,17 +106,17 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">Create New Task</h2>
+      <h2 className="text-2xl font-bold text-slate-100">Create New Task</h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">Error: {error}</p>
+        <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
+          <p className="text-red-400 font-medium">Error: {error}</p>
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800 font-medium">✓ Task created successfully!</p>
+        <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
+          <p className="text-green-400 font-medium">✓ Task created successfully!</p>
         </div>
       )}
 

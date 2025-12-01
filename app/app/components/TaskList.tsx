@@ -41,11 +41,17 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'done': return 'bg-green-100 text-green-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'running': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'done':
+      case 'completed':
+        return 'bg-green-900/30 text-green-400 border border-green-800';
+      case 'failed':
+        return 'bg-red-900/30 text-red-400 border border-red-800';
+      case 'pending':
+        return 'bg-yellow-900/30 text-yellow-400 border border-yellow-800';
+      case 'running':
+        return 'bg-blue-900/30 text-blue-400 border border-blue-800';
+      default:
+        return 'bg-slate-800 text-slate-400 border border-slate-700';
     }
   };
 
@@ -59,8 +65,8 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">Error: {error}</p>
+      <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
+        <p className="text-red-400">Error: {error}</p>
         <button
           onClick={loadTasks}
           className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -74,30 +80,30 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Tasks</h2>
+        <h2 className="text-2xl font-bold text-slate-100">Tasks</h2>
         <button
           onClick={loadTasks}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors shadow-md"
         >
           🔄 Refresh
         </button>
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-300 mb-1">
             Status
           </label>
           <select
             value={filter.status}
             onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           >
             <option value="">All</option>
             <option value="pending">Pending</option>
             <option value="running">Running</option>
-            <option value="done">Done</option>
+            <option value="completed">Completed</option>
             <option value="failed">Failed</option>
           </select>
         </div>

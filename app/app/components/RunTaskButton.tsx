@@ -39,13 +39,13 @@ export default function RunTaskButton({ onTaskRun }: RunTaskButtonProps) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-teal-900/30 to-emerald-900/30 border border-teal-800 rounded-lg p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-slate-100">
               ⚡ Quick Action: Run Next Pending Task
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               Execute the next task in the pending queue
             </p>
           </div>
@@ -55,8 +55,8 @@ export default function RunTaskButton({ onTaskRun }: RunTaskButtonProps) {
             className={`
               px-6 py-3 rounded-lg font-medium text-white transition-all shadow-md
               ${loading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
+                ? 'bg-slate-600 cursor-not-allowed'
+                : 'bg-teal-600 hover:bg-teal-700 hover:shadow-lg'
               }
             `}
           >

@@ -1,61 +1,98 @@
 // API URL configuration
-// In production (Vercel): uses /api which routes to Python backend
-// In development: uses localhost:8000 or env var
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? '/api'
-    : 'http://localhost:8000');
+// Always use relative /api routes (Next.js API routes, not Python)
+const API_BASE_URL = '/api';
 
 export interface Task {
   id: string;
-  title: string | null;
-  type: string;
-  status: string;
-  payload: any;
-  tags: string[];
-  created_at: string;
-  updated_at: string;
-  result?: any;
-  error?: string;
+  title: string;
+  description?: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  createdAt: string;
+  updatedAt: string;
+  lastRunAt?: string;
+  runnerStatus?: string;
+  type?: string;
+  payload?: any;
+  tags?: string[];
 }
 
 export interface Event {
-  task_id: string | null;
-  event_type: string;
+  id: string;
+  taskId?: string;
+  eventType: string;
   timestamp: string;
   data: any;
 }
 
 export interface CreateTaskPayload {
-  title?: string;
-  type: string;
-  payload: any;
+  title: string;
+  description?: string;
+  type?: string;
+  payload?: any;
   tags?: string[];
 }
 
-export interface TasksResponse {
-  tasks: Task[];
-  count: number;
-}
-
-export interface EventsResponse {
-  events: Event[];
-  count: number;
-}
-
-export interface RunTaskResponse {
-  success: boolean;
-  task_id: string | null;
-  task?: Task;
-  result?: any;
+export interface ApiResponse<T> {
+  ok: boolean;
+  data?: T;
   error?: string;
 }
 
+/**
+ * Helper to handle fetch with proper error handling
+ */
+async function fetchApi<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  console.log(`[Client] Fetching: ${options?.method || 'GET'} ${url}`);
+
+  try {
+    const response = await fetch(url, options);
+
+    // Check if response is OK
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        // If not JSON, try text
+        const text = await response.text();
+        if (text) errorMessage = text;
+      }
+      console.error(`[Client] Request failed: ${errorMessage}`);
+      throw new Error(errorMessage);
+    }
+
+    // Parse JSON
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error('[Client] Failed to parse JSON response');
+      throw new Error('Server returned invalid JSON');
+    }
+
+    // Check API response format
+    if (!data.ok && data.error) {
+      console.error(`[Client] API error: ${data.error}`);
+      throw new Error(data.error);
+    }
+
+    console.log(`[Client] Success: ${options?.method || 'GET'} ${url}`);
+    return data.data as T;
+
+  } catch (error: any) {
+    console.error(`[Client] Error in fetchApi:`, error.message);
+    throw error;
+  }
+}
+
 // Health check
-export async function checkHealth(): Promise<{ status: string; version: string }> {
-  const response = await fetch(`${API_BASE_URL}/health`);
-  if (!response.ok) throw new Error('Health check failed');
-  return response.json();
+export async function checkHealth(): Promise<any> {
+  return fetchApi('/health');
 }
 
 // Get tasks
@@ -64,51 +101,52 @@ export async function getTasks(params?: {
   status?: string;
   task_type?: string;
   tag?: string;
-}): Promise<TasksResponse> {
+}): Promise<{ tasks: Task[]; count: number }> {
   const queryParams = new URLSearchParams();
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.status) queryParams.append('status', params.status);
-  if (params?.task_type) queryParams.append('task_type', params.task_type);
+  if (params?.task_type) queryParams.append('type', params.task_type);
   if (params?.tag) queryParams.append('tag', params.tag);
 
-  const response = await fetch(`${API_BASE_URL}/tasks?${queryParams}`);
-  if (!response.ok) throw new Error('Failed to fetch tasks');
-  return response.json();
+  const query = queryParams.toString();
+  return fetchApi(`/tasks${query ? `?${query}` : ''}`);
 }
 
 // Get single task
-export async function getTask(taskId: string): Promise<{ task: Task; events: Event[] }> {
-  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`);
-  if (!response.ok) throw new Error('Failed to fetch task');
-  return response.json();
+export async function getTask(taskId: string): Promise<{ task: Task }> {
+  return fetchApi(`/tasks/${taskId}`);
 }
 
 // Create task
-export async function createTask(payload: CreateTaskPayload): Promise<{ success: boolean; task: Task }> {
-  const response = await fetch(`${API_BASE_URL}/tasks`, {
+export async function createTask(payload: CreateTaskPayload): Promise<{ task: Task }> {
+  return fetchApi('/tasks', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to create task');
-  }
-
-  return response.json();
 }
 
-// Run next task
-export async function runNextTask(): Promise<RunTaskResponse> {
-  const response = await fetch(`${API_BASE_URL}/tasks/run-next`, {
+// Update task
+export async function updateTask(taskId: string, updates: Partial<Task>): Promise<{ task: Task }> {
+  return fetchApi(`/tasks/${taskId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+}
+
+// Delete task
+export async function deleteTask(taskId: string): Promise<{ deleted: boolean; taskId: string }> {
+  return fetchApi(`/tasks/${taskId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Run a task
+export async function runTask(taskId: string): Promise<{ task: Task; runnerResponse?: any }> {
+  return fetchApi(`/tasks/${taskId}/run`, {
     method: 'POST',
   });
-
-  if (!response.ok) throw new Error('Failed to run task');
-  return response.json();
 }
 
 // Get events
@@ -116,34 +154,13 @@ export async function getEvents(params?: {
   limit?: number;
   task_id?: string;
   event_type?: string;
-}): Promise<EventsResponse> {
+}): Promise<{ events: Event[]; count: number }> {
   const queryParams = new URLSearchParams();
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.task_id) queryParams.append('task_id', params.task_id);
   if (params?.event_type) queryParams.append('event_type', params.event_type);
 
-  const response = await fetch(`${API_BASE_URL}/events?${queryParams}`);
-  if (!response.ok) throw new Error('Failed to fetch events');
-  return response.json();
-}
-
-// Get session
-export async function getSession(sessionId: string, limit?: number): Promise<{
-  session_id: string;
-  messages: any[];
-  summary: string | null;
-  message_count: number;
-}> {
-  const queryParams = limit ? `?limit=${limit}` : '';
-  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}${queryParams}`);
-  if (!response.ok) throw new Error('Failed to fetch session');
-  return response.json();
-}
-
-// List sessions
-export async function listSessions(): Promise<{ sessions: string[]; count: number }> {
-  const response = await fetch(`${API_BASE_URL}/sessions`);
-  if (!response.ok) throw new Error('Failed to fetch sessions');
-  return response.json();
+  const query = queryParams.toString();
+  return fetchApi(`/events${query ? `?${query}` : ''}`);
 }
 

@@ -23,6 +23,7 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
 
   const loadEvents = async () => {
     try {
+      console.log('[EventList] Loading events with filters:', filter);
       setLoading(true);
       setError(null);
       const response = await getEvents({
@@ -30,8 +31,10 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
         task_id: filter.task_id || undefined,
         event_type: filter.event_type || undefined,
       });
+      console.log(`[EventList] Loaded ${response.events.length} events`);
       setEvents(response.events);
     } catch (err) {
+      console.error('[EventList] Error loading events:', err);
       setError(err instanceof Error ? err.message : 'Failed to load events');
     } finally {
       setLoading(false);
@@ -40,15 +43,15 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
 
   const getEventTypeColor = (eventType: string) => {
     if (eventType.includes('error') || eventType.includes('failed')) {
-      return 'text-red-600 bg-red-50';
+      return 'text-red-400 bg-red-900/30 border border-red-800';
     }
     if (eventType.includes('success') || eventType.includes('completed')) {
-      return 'text-green-600 bg-green-50';
+      return 'text-green-400 bg-green-900/30 border border-green-800';
     }
     if (eventType.includes('started') || eventType.includes('running')) {
-      return 'text-blue-600 bg-blue-50';
+      return 'text-blue-400 bg-blue-900/30 border border-blue-800';
     }
-    return 'text-gray-600 bg-gray-50';
+    return 'text-slate-400 bg-slate-800 border border-slate-700';
   };
 
   if (loading && events.length === 0) {
@@ -61,8 +64,8 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">Error: {error}</p>
+      <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
+        <p className="text-red-400">Error: {error}</p>
         <button
           onClick={loadEvents}
           className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -76,26 +79,26 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Events</h2>
+        <h2 className="text-2xl font-bold text-slate-100">Events</h2>
         <button
           onClick={loadEvents}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors shadow-md"
         >
           🔄 Refresh
         </button>
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-300 mb-1">
             Task ID (partial)
           </label>
           <input
             type="text"
             value={filter.task_id}
             onChange={(e) => setFilter({ ...filter, task_id: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             placeholder="e.g., abc123..."
           />
         </div>

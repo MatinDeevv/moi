@@ -5,10 +5,11 @@ import TaskList from './components/TaskList';
 import CreateTaskForm from './components/CreateTaskForm';
 import RunTaskButton from './components/RunTaskButton';
 import EventList from './components/EventList';
+import DiagnosticsPanel from './components/DiagnosticsPanel';
 import { Task } from './lib/api';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'tasks' | 'create' | 'events'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'create' | 'events' | 'diagnostics'>('tasks');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -20,12 +21,13 @@ export default function Home() {
     { id: 'tasks' as const, label: '📋 Tasks', icon: '📋' },
     { id: 'create' as const, label: '➕ Create Task', icon: '➕' },
     { id: 'events' as const, label: '📊 Events', icon: '📊' },
+    { id: 'diagnostics' as const, label: '🔧 Diagnostics', icon: '🔧' },
   ];
 
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-md p-1 flex gap-1">
+      <div className="bg-slate-800 rounded-lg shadow-lg p-1 flex gap-1 border border-slate-700">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -33,8 +35,8 @@ export default function Home() {
             className={`
               flex-1 px-6 py-3 rounded-md font-medium transition-all
               ${activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-teal-600 text-white shadow-md'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
               }
             `}
           >
@@ -48,7 +50,7 @@ export default function Home() {
       <RunTaskButton onTaskRun={handleRefresh} />
 
       {/* Tab Content */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-700">
         {activeTab === 'tasks' && (
           <TaskList
             refreshTrigger={refreshTrigger}
@@ -67,6 +69,10 @@ export default function Home() {
 
         {activeTab === 'events' && (
           <EventList refreshTrigger={refreshTrigger} />
+        )}
+
+        {activeTab === 'diagnostics' && (
+          <DiagnosticsPanel />
         )}
       </div>
 
