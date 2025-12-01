@@ -1,5 +1,14 @@
+# Project ME v0.2 - Python Dependencies
+
+# Core dependencies (existing)
 requests==2.31.0
+
+# API Server dependencies (NEW in v0.2)
 fastapi==0.104.1
-uvicorn==0.24.0
+uvicorn[standard]==0.24.0
 pydantic==2.5.2
+
+# Optional: For better performance
+# python-multipart==0.0.6  # For file uploads (future)
+# python-jose[cryptography]==3.3.0  # For JWT auth (future)
 
