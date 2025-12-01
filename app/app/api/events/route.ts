@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { loadEvents } from '@/lib/martinDb';
+import { getEvents } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,28 +18,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '200');
-    const taskId = searchParams.get('task_id');
-    const eventType = searchParams.get('event_type');
+    const taskId = searchParams.get('task_id') || undefined;
+    const eventType = searchParams.get('event_type') || undefined;
 
     console.log('[API/events] Query params:', { limit, taskId, eventType });
 
-    let events = await loadEvents();
-    console.log(`[API/events] Loaded ${events.length} events from DB`);
+    const events = await getEvents({ taskId, eventType, limit });
 
-    // Apply filters
-    if (taskId) {
-      events = events.filter(e => e.taskId === taskId);
-    }
-    if (eventType) {
-      events = events.filter(e => e.eventType === eventType);
-    }
-
-    // Sort by newest first and apply limit
-    events = events.sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    ).slice(0, limit);
-
-    console.log(`[API/events] Returning ${events.length} events after filters`);
+    console.log(`[API/events] Returning ${events.length} events`);
 
     return NextResponse.json({
       ok: true,

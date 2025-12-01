@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { loadTasks, saveTasks, addEvent, type Task } from '@/lib/martinDb';
+import { getTaskById, updateTask, deleteTask, createEvent } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,8 +19,7 @@ export async function GET(
   console.log(`[API/tasks] GET /api/tasks/${taskId}`);
 
   try {
-    const tasks = await loadTasks();
-    const task = tasks.find(t => t.id === taskId);
+    const task = await getTaskById(taskId);
 
     if (!task) {
       console.log(`[API/tasks] Task not found: ${taskId}`);
@@ -71,10 +70,9 @@ export async function PATCH(
       );
     }
 
-    const tasks = await loadTasks();
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const existingTask = await getTaskById(taskId);
 
-    if (taskIndex === -1) {
+    if (!existingTask) {
       console.log(`[API/tasks] Task not found for update: ${taskId}`);
       return NextResponse.json(
         { ok: false, error: 'Task not found' },
@@ -82,22 +80,13 @@ export async function PATCH(
       );
     }
 
-    const oldTask = tasks[taskIndex];
-    const updatedTask: Task = {
-      ...oldTask,
-      ...body,
-      id: taskId, // Prevent ID change
-      updatedAt: new Date().toISOString(),
-    };
-
-    tasks[taskIndex] = updatedTask;
-    await saveTasks(tasks);
+    const updatedTask = await updateTask(taskId, body);
 
     console.log(`[API/tasks] Updated task: ${taskId} - "${updatedTask.title}"`);
-    console.log(`[API/tasks] Status change: ${oldTask.status} -> ${updatedTask.status}`);
+    console.log(`[API/tasks] Status change: ${existingTask.status} -> ${updatedTask.status}`);
 
     // Add event
-    await addEvent({
+    await createEvent({
       taskId: taskId,
       eventType: 'task_updated',
       data: {
@@ -133,10 +122,9 @@ export async function DELETE(
   console.log(`[API/tasks] DELETE /api/tasks/${taskId}`);
 
   try {
-    const tasks = await loadTasks();
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const task = await getTaskById(taskId);
 
-    if (taskIndex === -1) {
+    if (!task) {
       console.log(`[API/tasks] Task not found for deletion: ${taskId}`);
       return NextResponse.json(
         { ok: false, error: 'Task not found' },
@@ -144,18 +132,15 @@ export async function DELETE(
       );
     }
 
-    const deletedTask = tasks[taskIndex];
-    tasks.splice(taskIndex, 1);
-    await saveTasks(tasks);
+    await deleteTask(taskId);
 
-    console.log(`[API/tasks] Deleted task: ${taskId} - "${deletedTask.title}"`);
-    console.log(`[API/tasks] Remaining tasks: ${tasks.length}`);
+    console.log(`[API/tasks] Deleted task: ${taskId} - "${task.title}"`);
 
     // Add event
-    await addEvent({
+    await createEvent({
       taskId: taskId,
       eventType: 'task_deleted',
-      data: { title: deletedTask.title }
+      data: { title: task.title }
     });
 
     return NextResponse.json({

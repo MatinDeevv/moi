@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { loadTasks, saveTasks, addEvent } from '@/lib/martinDb';
+import { getTaskById, updateTask, createEvent } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,10 +21,9 @@ export async function POST(
 
   try {
     // Load task
-    const tasks = await loadTasks();
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const task = await getTaskById(taskId);
 
-    if (taskIndex === -1) {
+    if (!task) {
       console.log(`[Runner] Task not found: ${taskId}`);
       return NextResponse.json(
         { ok: false, error: 'Task not found' },
@@ -32,7 +31,6 @@ export async function POST(
       );
     }
 
-    const task = tasks[taskIndex];
     console.log(`[Runner] Found task: "${task.title}" (status: ${task.status})`);
 
     // Check for RUNNER_BASE_URL
@@ -69,14 +67,14 @@ export async function POST(
     console.log('[Runner] Calling remote runner with payload:', JSON.stringify(runnerPayload, null, 2));
 
     // Update task status to 'running'
-    task.status = 'running';
-    task.updatedAt = new Date().toISOString();
-    task.lastRunAt = task.updatedAt;
-    tasks[taskIndex] = task;
-    await saveTasks(tasks);
+    await updateTask(task.id, {
+      ...task,
+      status: 'running',
+      lastRunAt: new Date(),
+    });
 
     // Add event
-    await addEvent({
+    await createEvent({
       taskId: task.id,
       eventType: 'task_run_started',
       data: { runnerUrl: runnerBaseUrl }
@@ -110,25 +108,27 @@ export async function POST(
       console.log('[Runner] Runner response:', JSON.stringify(runnerResponse, null, 2));
 
       // Update task with runner response
-      task.runnerStatus = runnerResponse.status || 'completed';
-      task.updatedAt = new Date().toISOString();
-
-      if (runnerResponse.error) {
-        task.status = 'failed';
-      } else {
-        task.status = runnerResponse.status === 'failed' ? 'failed' : 'completed';
-      }
-
-      tasks[taskIndex] = task;
-      await saveTasks(tasks);
+      const finalTask = await updateTask(task.id, {
+        ...task,
+        runnerStatus: runnerResponse.status || 'completed',
+        status: runnerResponse.error ? 'failed' : (runnerResponse.status === 'failed' ? 'failed' : 'completed'),
+      });
 
       // Add success event
-      await addEvent({
+      await createEvent({
         taskId: task.id,
         eventType: 'task_run_completed',
         data: {
-          runnerStatus: task.runnerStatus,
-          taskStatus: task.status
+          runnerStatus: finalTask.runnerStatus,
+          taskStatus: finalTask.status
+        }
+      });
+
+      return NextResponse.json({
+        ok: true,
+        data: {
+          task: finalTask,
+          runnerResponse
         }
       });
 
@@ -137,14 +137,14 @@ export async function POST(
       console.error(runnerError.stack);
 
       // Update task to failed
-      task.status = 'failed';
-      task.runnerStatus = `error: ${runnerError.message}`;
-      task.updatedAt = new Date().toISOString();
-      tasks[taskIndex] = task;
-      await saveTasks(tasks);
+      const failedTask = await updateTask(task.id, {
+        ...task,
+        status: 'failed',
+        runnerStatus: `error: ${runnerError.message}`,
+      });
 
       // Add error event
-      await addEvent({
+      await createEvent({
         taskId: task.id,
         eventType: 'task_run_failed',
         data: { error: runnerError.message }
@@ -153,19 +153,9 @@ export async function POST(
       return NextResponse.json({
         ok: false,
         error: `Runner execution failed: ${runnerError.message}`,
-        data: { task }
+        data: { task: failedTask }
       }, { status: 500 });
     }
-
-    console.log(`[Runner] Successfully executed task ${taskId}`);
-
-    return NextResponse.json({
-      ok: true,
-      data: {
-        task,
-        runnerResponse
-      }
-    });
 
   } catch (error: any) {
     console.error(`[Runner] Unexpected error for ${taskId}:`, error.message);

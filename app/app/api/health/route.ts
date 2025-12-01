@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { loadTasks, loadEvents } from '@/lib/martinDb';
+import { getDatabaseHealth } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,33 +19,14 @@ export async function GET(request: NextRequest) {
     const runnerConfigured = !!process.env.RUNNER_BASE_URL;
     const runnerUrl = runnerConfigured ? process.env.RUNNER_BASE_URL : null;
 
-    // Try to load data to verify DB health
-    let tasksCount = 0;
-    let eventsCount = 0;
-    let dbHealthy = true;
-    let dbError = null;
-
-    try {
-      const tasks = await loadTasks();
-      const events = await loadEvents();
-      tasksCount = tasks.length;
-      eventsCount = events.length;
-    } catch (err: any) {
-      dbHealthy = false;
-      dbError = err.message;
-      console.error('[API/health] DB health check failed:', err.message);
-    }
+    // Get database health
+    const database = await getDatabaseHealth();
 
     const health = {
       ok: true,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
-      database: {
-        healthy: dbHealthy,
-        tasksCount,
-        eventsCount,
-        error: dbError
-      },
+      database,
       runner: {
         configured: runnerConfigured,
         baseUrl: runnerUrl,

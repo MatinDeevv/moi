@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { loadTasks, saveTasks, addEvent, type Task } from '@/lib/martinDb';
+import { getTasks, createTask, createEvent } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,32 +18,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '100');
-    const status = searchParams.get('status');
-    const type = searchParams.get('task_type') || searchParams.get('type');
-    const tag = searchParams.get('tag');
+    const status = searchParams.get('status') || undefined;
+    const type = searchParams.get('task_type') || searchParams.get('type') || undefined;
+    const tag = searchParams.get('tag') || undefined;
 
     console.log('[API/tasks] Query params:', { limit, status, type, tag });
 
-    let tasks = await loadTasks();
-    console.log(`[API/tasks] Loaded ${tasks.length} tasks from DB`);
+    const tasks = await getTasks({ status, type, tag, limit });
 
-    // Apply filters
-    if (status) {
-      tasks = tasks.filter(t => t.status === status);
-    }
-    if (type) {
-      tasks = tasks.filter(t => t.type === type);
-    }
-    if (tag && tasks.length > 0) {
-      tasks = tasks.filter(t => t.tags?.includes(tag));
-    }
-
-    // Apply limit and sort by newest first
-    tasks = tasks.sort((a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ).slice(0, limit);
-
-    console.log(`[API/tasks] Returning ${tasks.length} tasks after filters`);
+    console.log(`[API/tasks] Returning ${tasks.length} tasks`);
 
     return NextResponse.json({
       ok: true,
@@ -92,31 +75,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const tasks = await loadTasks();
-    console.log(`[API/tasks] Current task count: ${tasks.length}`);
-
     // Create new task
-    const now = new Date().toISOString();
-    const newTask: Task = {
-      id: crypto.randomUUID(),
+    const newTask = await createTask({
       title: body.title.trim(),
-      description: body.description || '',
-      status: 'pending',
-      createdAt: now,
-      updatedAt: now,
+      description: body.description || undefined,
       type: body.type || 'general',
       payload: body.payload || {},
       tags: body.tags || [],
-    };
-
-    tasks.push(newTask);
-    await saveTasks(tasks);
+    });
 
     console.log(`[API/tasks] Created task: ${newTask.id} - "${newTask.title}"`);
-    console.log(`[API/tasks] New task count: ${tasks.length}`);
 
     // Add event
-    await addEvent({
+    await createEvent({
       taskId: newTask.id,
       eventType: 'task_created',
       data: { title: newTask.title, status: newTask.status }
