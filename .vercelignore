@@ -1,5 +1,4 @@
-# Ignore all Python files - only deploy Next.js app
-*.py
+# Ignore Python source files except api/
 src/
 logs/
 __pycache__/
@@ -7,4 +6,9 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+main.py
+test_system.py
+validate_system.py
+example_usage.py
+
 
