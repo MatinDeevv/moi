@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import TaskList from '../components/TaskList';
-import CreateTaskForm from '../components/CreateTaskForm';
-import RunTaskButton from '../components/RunTaskButton';
-import EventList from '../components/EventList';
-import { Task } from '../lib/api';
+import TaskList from './components/TaskList';
+import CreateTaskForm from './components/CreateTaskForm';
+import RunTaskButton from './components/RunTaskButton';
+import EventList from './components/EventList';
+import { Task } from './lib/api';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'create' | 'events'>('tasks');
