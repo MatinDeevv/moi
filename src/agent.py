@@ -5,10 +5,10 @@ Core logic for processing tasks with LLM planning and tool execution.
 import json
 from typing import Dict, Any, List, Optional
 
-from tasks import Task, TaskStore, TaskStatus
-from memory import memory, EventType
-from llm_client import llm
-from tools import get_tool, list_tools
+from .tasks import Task, TaskStore, TaskStatus
+from .memory import memory, EventType
+from .llm_client import llm
+from .tools import get_tool, list_tools
 
 
 class Agent:

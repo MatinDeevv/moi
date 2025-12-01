@@ -16,7 +16,7 @@ PLAN_TEMPERATURE = 0.3  # Lower temperature for structured planning
 PLAN_MAX_TOKENS = 1500
 
 # Paths
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT = Path(__file__).parent.parent  # Root of the project (parent of src)
 LOGS_DIR = PROJECT_ROOT / "logs"
 TASKS_FILE = LOGS_DIR / "tasks.jsonl"
 EVENTS_FILE = LOGS_DIR / "events.jsonl"

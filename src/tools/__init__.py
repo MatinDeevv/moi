@@ -29,5 +29,5 @@ def list_tools() -> list:
 
 
 # Import tool modules to trigger registration
-from tools import shell_tools, fs_tools
+from . import shell_tools, fs_tools
 

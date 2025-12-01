@@ -1,24 +1,24 @@
 """
-Test script for Project ME v0
+Test script for Project ME v0.1
 Verifies basic functionality without requiring LM Studio.
 """
 import sys
 from pathlib import Path
 
 print("="*60)
-print("Project ME v0 - System Test")
+print("Project ME v0.1 - System Test")
 print("="*60)
 
 # Test 1: Module imports
 print("\n[1/5] Testing module imports...")
 try:
-    import config
-    import tasks
-    import memory
-    import llm_client
-    import agent
+    from src import config
+    from src import tasks
+    from src import memory
+    from src import llm_client
+    from src import agent
     import main
-    from tools import list_tools
+    from src.tools import list_tools
     print("✓ All modules imported successfully")
 except Exception as e:
     print(f"✗ Import failed: {e}")
@@ -40,7 +40,7 @@ except Exception as e:
 # Test 3: Task creation and persistence
 print("\n[3/5] Testing task system...")
 try:
-    from tasks import TaskStore
+    from src.tasks import TaskStore
     store = TaskStore()
 
     # Create a test task
@@ -63,7 +63,7 @@ except Exception as e:
 # Test 4: Memory/Event logging
 print("\n[4/5] Testing memory system...")
 try:
-    from memory import MemoryStore, EventType
+    from src.memory import MemoryStore, EventType
     mem = MemoryStore()
 
     # Log a test event
@@ -86,7 +86,7 @@ except Exception as e:
 # Test 5: Tool registry
 print("\n[5/5] Testing tool system...")
 try:
-    from tools import list_tools, get_tool
+    from src.tools import list_tools, get_tool
 
     available_tools = list_tools()
     assert len(available_tools) > 0, "No tools registered"

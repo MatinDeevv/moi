@@ -6,9 +6,9 @@ import os
 from pathlib import Path
 from typing import Dict, Any, List
 
-import config
-from memory import memory, EventType
-from tools import register_tool
+from .. import config
+from ..memory import memory, EventType
+from . import register_tool
 
 
 @register_tool("read_file")

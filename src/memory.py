@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List, Optional, Any
 from enum import Enum
 
-import config
+from . import config
 
 
 class EventType(Enum):

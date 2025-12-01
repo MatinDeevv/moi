@@ -1,9 +1,9 @@
 """
-Example: Using Project ME v0 programmatically
+Example: Using Project ME v0.1 programmatically
 This shows how to create and run tasks from Python code instead of the CLI.
 """
-from tasks import TaskStore
-from agent import agent
+from src.tasks import TaskStore
+from src.agent import agent
 
 # Initialize task store
 store = TaskStore()

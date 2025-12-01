@@ -1,14 +1,14 @@
 """
-Project ME v0 - Main CLI entrypoint
+Project ME v0.1 - Main CLI entrypoint
 Local automation and orchestration system.
 """
 import sys
 import json
 
-from tasks import TaskStore
-from agent import agent
-from memory import memory
-from tools import list_tools
+from src.tasks import TaskStore
+from src.agent import agent
+from src.memory import memory
+from src.tools import list_tools
 
 
 def print_banner():
@@ -446,7 +446,7 @@ def inspect_session(task_store: TaskStore):
     print()
 
 
-#   thats he main loop
+def main():
     """Main CLI loop."""
     print_banner()
 
@@ -472,22 +472,42 @@ def inspect_session(task_store: TaskStore):
             tail_events_display()
         elif choice == "8":
             list_available_tools()
+        elif choice == "9":
+            create_llm_session_task(task_store)
+        elif choice == "10":
+            inspect_session(task_store)
         elif choice == "0":
-            print("\nExiting Project ME v0.1. Goodbye!")
+            print("\nExiting Project ME v0.2. Goodbye!")
             break
         else:
             print("\nInvalid choice. Please try again.")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\n\nInterrupted by user. Exiting...")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n\nFatal error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    # Check if --api flag is passed
+    if len(sys.argv) > 1 and sys.argv[1] == "--api":
+        print("\n🚀 Starting API server mode...\n")
+        try:
+            from api_server import start_server
+            start_server()
+        except KeyboardInterrupt:
+            print("\n\nAPI server stopped by user.")
+            sys.exit(0)
+        except Exception as e:
+            print(f"\n\nFatal error starting API server: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
+    else:
+        # Normal CLI mode
+        try:
+            main()
+        except KeyboardInterrupt:
+            print("\n\nInterrupted by user. Exiting...")
+            sys.exit(0)
+        except Exception as e:
+            print(f"\n\nFatal error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
 

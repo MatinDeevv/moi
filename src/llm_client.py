@@ -6,8 +6,8 @@ import json
 import requests
 from typing import List, Dict, Optional, Any
 
-import config
-from memory import memory, EventType
+from . import config
+from .memory import memory, EventType
 
 
 class LMStudioClient:

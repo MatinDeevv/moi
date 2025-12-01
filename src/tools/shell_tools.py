@@ -5,9 +5,9 @@ Execute shell commands and capture output.
 import subprocess
 from typing import Dict, Any
 
-import config
-from memory import memory, EventType
-from tools import register_tool
+from .. import config
+from ..memory import memory, EventType
+from . import register_tool
 
 
 @register_tool("run_shell_command")
