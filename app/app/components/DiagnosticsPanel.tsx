@@ -50,18 +50,18 @@ export default function DiagnosticsPanel() {
   };
 
   const StatusIndicator = ({ status }: { status: 'loading' | 'success' | 'error' }) => {
-    if (status === 'loading') return <span className="text-yellow-400">⏳ Testing...</span>;
-    if (status === 'success') return <span className="text-green-400">✅ OK</span>;
-    return <span className="text-red-400">❌ Failed</span>;
+    if (status === 'loading') return <span className="text-yellow-700">⏳ Testing...</span>;
+    if (status === 'success') return <span className="text-green-700">✅ OK</span>;
+    return <span className="text-red-700">❌ Failed</span>;
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700 space-y-4">
+    <div className="bg-white rounded-lg p-6 border border-gray-200 space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold text-slate-100">🔧 System Diagnostics</h3>
+        <h3 className="text-xl font-bold text-gray-900">🔧 System Diagnostics</h3>
         <button
           onClick={runDiagnostics}
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
         >
           🔄 Re-run Tests
         </button>
@@ -69,18 +69,18 @@ export default function DiagnosticsPanel() {
 
       <div className="space-y-3">
         {/* Health Check */}
-        <div className="bg-slate-900 p-4 rounded border border-slate-700">
+        <div className="bg-gray-50 p-4 rounded border border-gray-200">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-medium text-slate-200">Health Endpoint</p>
-              <p className="text-sm text-slate-400 mt-1">GET /api/health</p>
+              <p className="font-medium text-gray-900">Health Endpoint</p>
+              <p className="text-sm text-gray-600 mt-1">GET /api/health</p>
             </div>
             <StatusIndicator status={health ? 'success' : 'loading'} />
           </div>
           {health && (
             <details className="mt-3">
-              <summary className="text-sm text-teal-400 cursor-pointer">View Response</summary>
-              <pre className="mt-2 bg-slate-950 p-3 rounded text-xs overflow-x-auto text-slate-300">
+              <summary className="text-sm text-blue-600 cursor-pointer">View Response</summary>
+              <pre className="mt-2 bg-white p-3 rounded text-xs overflow-x-auto text-gray-900 border border-gray-200">
                 {JSON.stringify(health, null, 2)}
               </pre>
             </details>
@@ -88,40 +88,40 @@ export default function DiagnosticsPanel() {
         </div>
 
         {/* Tasks API */}
-        <div className="bg-slate-900 p-4 rounded border border-slate-700">
+        <div className="bg-gray-50 p-4 rounded border border-gray-200">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-medium text-slate-200">Tasks API</p>
-              <p className="text-sm text-slate-400 mt-1">GET /api/tasks</p>
+              <p className="font-medium text-gray-900">Tasks API</p>
+              <p className="text-sm text-gray-600 mt-1">GET /api/tasks</p>
             </div>
             <StatusIndicator status={tasksStatus} />
           </div>
           {errorDetails.tasks && (
-            <p className="mt-2 text-sm text-red-400">{errorDetails.tasks}</p>
+            <p className="mt-2 text-sm text-red-700">{errorDetails.tasks}</p>
           )}
         </div>
 
         {/* Events API */}
-        <div className="bg-slate-900 p-4 rounded border border-slate-700">
+        <div className="bg-gray-50 p-4 rounded border border-gray-200">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-medium text-slate-200">Events API</p>
-              <p className="text-sm text-slate-400 mt-1">GET /api/events</p>
+              <p className="font-medium text-gray-900">Events API</p>
+              <p className="text-sm text-gray-600 mt-1">GET /api/events</p>
             </div>
             <StatusIndicator status={eventsStatus} />
           </div>
           {errorDetails.events && (
-            <p className="mt-2 text-sm text-red-400">{errorDetails.events}</p>
+            <p className="mt-2 text-sm text-red-700">{errorDetails.events}</p>
           )}
         </div>
 
         {/* Runner Configuration */}
         {health && (
-          <div className="bg-slate-900 p-4 rounded border border-slate-700">
+          <div className="bg-gray-50 p-4 rounded border border-gray-200">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium text-slate-200">Remote Runner</p>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="font-medium text-gray-900">Remote Runner</p>
+                <p className="text-sm text-gray-600 mt-1">
                   {health.runner?.configured ? (
                     <>Configured: {health.runner?.baseUrl}</>
                   ) : (
@@ -130,9 +130,9 @@ export default function DiagnosticsPanel() {
                 </p>
               </div>
               {health.runner?.configured ? (
-                <span className="text-green-400">✅ Configured</span>
+                <span className="text-green-700">✅ Configured</span>
               ) : (
-                <span className="text-yellow-400">⚠️ Not Set</span>
+                <span className="text-yellow-700">⚠️ Not Set</span>
               )}
             </div>
           </div>
@@ -140,29 +140,29 @@ export default function DiagnosticsPanel() {
 
         {/* Database Status */}
         {health?.database && (
-          <div className="bg-slate-900 p-4 rounded border border-slate-700">
+          <div className="bg-gray-50 p-4 rounded border border-gray-200">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium text-slate-200">MartinDB</p>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="font-medium text-gray-900">MartinDB</p>
+                <p className="text-sm text-gray-600 mt-1">
                   Tasks: {health.database.tasksCount} | Events: {health.database.eventsCount}
                 </p>
               </div>
               {health.database.healthy ? (
-                <span className="text-green-400">✅ Healthy</span>
+                <span className="text-green-700">✅ Healthy</span>
               ) : (
-                <span className="text-red-400">❌ Error</span>
+                <span className="text-red-700">❌ Error</span>
               )}
             </div>
             {health.database.error && (
-              <p className="mt-2 text-sm text-red-400">{health.database.error}</p>
+              <p className="mt-2 text-sm text-red-700">{health.database.error}</p>
             )}
           </div>
         )}
       </div>
 
-      <div className="pt-4 border-t border-slate-700">
-        <p className="text-xs text-slate-500">
+      <div className="pt-4 border-t border-gray-200">
+        <p className="text-xs text-gray-500">
           Check browser console (F12) for detailed logs from all API calls
         </p>
       </div>

@@ -43,15 +43,15 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
     switch (status) {
       case 'done':
       case 'completed':
-        return 'bg-green-900/30 text-green-400 border border-green-800';
+        return 'bg-green-100 text-green-800 border border-green-300';
       case 'failed':
-        return 'bg-red-900/30 text-red-400 border border-red-800';
+        return 'bg-red-100 text-red-800 border border-red-300';
       case 'pending':
-        return 'bg-yellow-900/30 text-yellow-400 border border-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-300';
       case 'running':
-        return 'bg-blue-900/30 text-blue-400 border border-blue-800';
+        return 'bg-blue-100 text-blue-800 border border-blue-300';
       default:
-        return 'bg-slate-800 text-slate-400 border border-slate-700';
+        return 'bg-gray-100 text-gray-800 border border-gray-300';
     }
   };
 
@@ -65,8 +65,8 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
 
   if (error) {
     return (
-      <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
-        <p className="text-red-400">Error: {error}</p>
+      <div className="bg-red-50 border border-red-300 rounded-lg p-4">
+        <p className="text-red-800">Error: {error}</p>
         <button
           onClick={loadTasks}
           className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -80,25 +80,25 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-slate-100">Tasks</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Tasks</h2>
         <button
           onClick={loadTasks}
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors shadow-md"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
         >
           🔄 Refresh
         </button>
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Status
           </label>
           <select
             value={filter.status}
             onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">All</option>
             <option value="pending">Pending</option>
@@ -187,18 +187,18 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-slate-100">
-                      {task.title || <span className="text-slate-400 italic">No title</span>}
+                    <div className="text-sm text-gray-900">
+                      {task.title || <span className="text-gray-500 italic">No title</span>}
                     </div>
                     {task.tags && task.tags.length > 0 && (
                       <div className="flex gap-1 mt-1">
                         {task.tags.slice(0, 3).map((tag, i) => (
-                          <span key={i} className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-600">
+                          <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-300">
                             {tag}
                           </span>
                         ))}
                         {task.tags.length > 3 && (
-                          <span className="text-xs text-slate-500">+{task.tags.length - 3}</span>
+                          <span className="text-xs text-gray-600">+{task.tags.length - 3}</span>
                         )}
                       </div>
                     )}
@@ -211,13 +211,13 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
                       {task.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {new Date(task.createdAt).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button
                       onClick={() => onTaskSelect?.(task)}
-                      className="text-teal-400 hover:text-teal-300 font-medium"
+                      className="text-blue-600 hover:text-blue-800 font-medium"
                     >
                       View Details
                     </button>

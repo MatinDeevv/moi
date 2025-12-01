@@ -106,17 +106,17 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-100">Create New Task</h2>
+      <h2 className="text-2xl font-bold text-gray-900">Create New Task</h2>
 
       {error && (
-        <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
-          <p className="text-red-400 font-medium">Error: {error}</p>
+        <div className="bg-red-50 border border-red-300 rounded-lg p-4">
+          <p className="text-red-800 font-medium">Error: {error}</p>
         </div>
       )}
 
       {success && (
-        <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
-          <p className="text-green-400 font-medium">✓ Task created successfully!</p>
+        <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+          <p className="text-green-800 font-medium">✓ Task created successfully!</p>
         </div>
       )}
 
