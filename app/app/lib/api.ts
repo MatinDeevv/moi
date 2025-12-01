@@ -51,28 +51,32 @@ async function fetchApi<T>(
   try {
     const response = await fetch(url, options);
 
-    // Check if response is OK
-    if (!response.ok) {
-      let errorMessage = `HTTP ${response.status}`;
+    // Read the response body once
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType?.includes('application/json');
+
+    let data;
+    let errorMessage = `HTTP ${response.status}`;
+
+    // Read body once based on content type
+    if (isJson) {
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || errorMessage;
-      } catch {
-        // If not JSON, try text
-        const text = await response.text();
-        if (text) errorMessage = text;
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[Client] Failed to parse JSON response');
+        throw new Error('Server returned invalid JSON');
       }
-      console.error(`[Client] Request failed: ${errorMessage}`);
-      throw new Error(errorMessage);
+    } else {
+      const text = await response.text();
+      errorMessage = text || errorMessage;
+      data = { ok: false, error: text };
     }
 
-    // Parse JSON
-    let data;
-    try {
-      data = await response.json();
-    } catch (parseError) {
-      console.error('[Client] Failed to parse JSON response');
-      throw new Error('Server returned invalid JSON');
+    // Check if response is OK
+    if (!response.ok) {
+      const finalError = data?.error || data?.message || errorMessage;
+      console.error(`[Client] Request failed: ${finalError}`);
+      throw new Error(finalError);
     }
 
     // Check API response format
