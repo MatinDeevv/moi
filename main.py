@@ -499,7 +499,7 @@ if __name__ == "__main__":
             traceback.print_exc()
             sys.exit(1)
     else:
-        # Normal CLI mode
+        # Normal CLI mode bro work
         try:
             main()
         except KeyboardInterrupt:
