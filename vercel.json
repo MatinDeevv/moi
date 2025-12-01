@@ -2,8 +2,7 @@
   "buildCommand": "cd app && npm run build",
   "outputDirectory": "app/.next",
   "installCommand": "cd app && npm install",
-  "framework": null,
-  "functions": {}
+  "framework": null
 }
 
 
