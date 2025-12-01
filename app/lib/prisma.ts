@@ -5,6 +5,11 @@
 
 import { PrismaClient } from '@prisma/client'
 
+// Fallback DATABASE_URL for Vercel serverless environment
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'file:/tmp/dev.db'
+}
+
 const prismaClientSingleton = () => {
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],

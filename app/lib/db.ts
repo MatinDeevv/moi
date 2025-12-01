@@ -4,6 +4,7 @@
  */
 
 import prisma from './prisma'
+import { initializeDatabase } from './initDb'
 
 export interface Task {
   id: string
@@ -37,6 +38,7 @@ export async function getTasks(filters?: {
   tag?: string
   limit?: number
 }) {
+  await initializeDatabase()
   console.log('[DB] Getting tasks with filters:', filters)
 
   const where: any = {}
@@ -75,6 +77,7 @@ export async function getTasks(filters?: {
 }
 
 export async function getTaskById(id: string) {
+  await initializeDatabase()
   console.log(`[DB] Getting task by ID: ${id}`)
 
   const task = await prisma.task.findUnique({
@@ -106,6 +109,7 @@ export async function createTask(data: {
   payload?: any
   tags?: string[]
 }) {
+  await initializeDatabase()
   console.log(`[DB] Creating task: ${data.title}`)
 
   const task = await prisma.task.create({
@@ -133,6 +137,7 @@ export async function createTask(data: {
 }
 
 export async function updateTask(id: string, data: Partial<Task>) {
+  await initializeDatabase()
   console.log(`[DB] Updating task: ${id}`)
 
   const updateData: any = {}
@@ -165,6 +170,7 @@ export async function updateTask(id: string, data: Partial<Task>) {
 }
 
 export async function deleteTask(id: string) {
+  await initializeDatabase()
   console.log(`[DB] Deleting task: ${id}`)
 
   await prisma.task.delete({
@@ -185,6 +191,7 @@ export async function getEvents(filters?: {
   eventType?: string
   limit?: number
 }) {
+  await initializeDatabase()
   console.log('[DB] Getting events with filters:', filters)
 
   const where: any = {}
@@ -217,6 +224,7 @@ export async function createEvent(data: {
   eventType: string
   data?: any
 }) {
+  await initializeDatabase()
   console.log(`[DB] Creating event: ${data.eventType}`)
 
   const event = await prisma.event.create({
@@ -242,6 +250,7 @@ export async function createEvent(data: {
 
 export async function getDatabaseHealth() {
   try {
+    await initializeDatabase()
     const tasksCount = await prisma.task.count()
     const eventsCount = await prisma.event.count()
 
