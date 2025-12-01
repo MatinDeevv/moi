@@ -7,7 +7,7 @@ export default function DiagnosticsPanel() {
   const [health, setHealth] = useState<any>(null);
   const [tasksStatus, setTasksStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [eventsStatus, setEventsStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [errorDetails, setErrorDetails] = useState<any>({});
+  const [errorDetails, setErrorDetails] = useState<Record<string, string>>({});
 
   useEffect(() => {
     runDiagnostics();
@@ -34,7 +34,7 @@ export default function DiagnosticsPanel() {
     } catch (err: any) {
       console.error('[Diagnostics] Tasks check failed:', err);
       setTasksStatus('error');
-      setErrorDetails(prev => ({ ...prev, tasks: err.message }));
+      setErrorDetails((prev: Record<string, string>) => ({ ...prev, tasks: err.message }));
     }
 
     // Test events endpoint
@@ -45,7 +45,7 @@ export default function DiagnosticsPanel() {
     } catch (err: any) {
       console.error('[Diagnostics] Events check failed:', err);
       setEventsStatus('error');
-      setErrorDetails(prev => ({ ...prev, events: err.message }));
+      setErrorDetails((prev: Record<string, string>) => ({ ...prev, events: err.message }));
     }
   };
 

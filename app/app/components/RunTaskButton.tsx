@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { runNextTask } from '../lib/api';
+import { getTasks, runTask } from '../lib/api';
 
 interface RunTaskButtonProps {
   onTaskRun?: () => void;
@@ -18,15 +18,39 @@ export default function RunTaskButton({ onTaskRun }: RunTaskButtonProps) {
     setShowResult(false);
 
     try {
-      const response = await runNextTask();
-      setResult(response);
+      console.log('[RunTaskButton] Finding next pending task...');
+
+      // Get first pending task
+      const tasksResponse = await getTasks({ status: 'pending', limit: 1 });
+
+      if (!tasksResponse.tasks || tasksResponse.tasks.length === 0) {
+        setResult({
+          success: false,
+          error: 'No pending tasks found'
+        });
+        setShowResult(true);
+        return;
+      }
+
+      const task = tasksResponse.tasks[0];
+      console.log(`[RunTaskButton] Running task: ${task.id}`);
+
+      // Run the task
+      const response = await runTask(task.id);
+      console.log('[RunTaskButton] Task run result:', response);
+
+      setResult({
+        success: true,
+        task: response.task,
+        runnerResponse: response.runnerResponse
+      });
       setShowResult(true);
 
       // Notify parent to refresh
-      if (response.success) {
-        onTaskRun?.();
-      }
+      onTaskRun?.();
+
     } catch (err) {
+      console.error('[RunTaskButton] Error:', err);
       setResult({
         success: false,
         error: err instanceof Error ? err.message : 'Failed to run task'

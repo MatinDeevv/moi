@@ -187,18 +187,18 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      {task.title || <span className="text-gray-400 italic">No title</span>}
+                    <div className="text-sm text-slate-100">
+                      {task.title || <span className="text-slate-400 italic">No title</span>}
                     </div>
-                    {task.tags.length > 0 && (
+                    {task.tags && task.tags.length > 0 && (
                       <div className="flex gap-1 mt-1">
                         {task.tags.slice(0, 3).map((tag, i) => (
-                          <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                          <span key={i} className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-600">
                             {tag}
                           </span>
                         ))}
                         {task.tags.length > 3 && (
-                          <span className="text-xs text-gray-500">+{task.tags.length - 3}</span>
+                          <span className="text-xs text-slate-500">+{task.tags.length - 3}</span>
                         )}
                       </div>
                     )}
@@ -211,13 +211,13 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
                       {task.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(task.created_at).toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                    {new Date(task.createdAt).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button
                       onClick={() => onTaskSelect?.(task)}
-                      className="text-blue-600 hover:text-blue-900 font-medium"
+                      className="text-teal-400 hover:text-teal-300 font-medium"
                     >
                       View Details
                     </button>

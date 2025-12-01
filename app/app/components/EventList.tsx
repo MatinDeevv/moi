@@ -104,26 +104,26 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-300 mb-1">
             Event Type
           </label>
           <input
             type="text"
             value={filter.event_type}
             onChange={(e) => setFilter({ ...filter, event_type: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             placeholder="e.g., task_started"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-300 mb-1">
             Limit
           </label>
           <select
             value={filter.limit}
             onChange={(e) => setFilter({ ...filter, limit: Number(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           >
             <option value="50">50</option>
             <option value="100">100</option>
@@ -134,13 +134,13 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
       </div>
 
       {/* Event count */}
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-slate-400">
         Showing {events.length} event{events.length !== 1 ? 's' : ''}
       </p>
 
       {/* Events list */}
       {events.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-slate-500">
           No events found.
         </div>
       ) : (
@@ -148,32 +148,32 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
           {events.map((event, index) => (
             <div
               key={index}
-              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="bg-slate-900 border border-slate-700 rounded-lg p-4 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.event_type)}`}>
-                      {event.event_type}
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.eventType)}`}>
+                      {event.eventType}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-slate-500">
                       {new Date(event.timestamp).toLocaleString()}
                     </span>
                   </div>
 
-                  {event.task_id && (
-                    <div className="text-sm text-gray-600 mb-2">
+                  {event.taskId && (
+                    <div className="text-sm text-slate-400 mb-2">
                       <span className="font-medium">Task: </span>
-                      <span className="font-mono">{event.task_id.substring(0, 12)}...</span>
+                      <span className="font-mono">{event.taskId.substring(0, 12)}...</span>
                     </div>
                   )}
 
                   {event.data && Object.keys(event.data).length > 0 && (
                     <details className="mt-2">
-                      <summary className="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600">
+                      <summary className="text-sm font-medium text-slate-300 cursor-pointer hover:text-teal-400">
                         View Data
                       </summary>
-                      <pre className="mt-2 bg-gray-50 p-3 rounded text-xs overflow-x-auto">
+                      <pre className="mt-2 bg-slate-950 p-3 rounded text-xs overflow-x-auto text-slate-300">
                         {JSON.stringify(event.data, null, 2)}
                       </pre>
                     </details>
