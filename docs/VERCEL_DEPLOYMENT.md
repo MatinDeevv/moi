@@ -194,12 +194,24 @@ sudo certbot --nginx -d yourdomain.com
 
 ## 🔧 Environment Variables for Vercel
 
-In Vercel dashboard, set these environment variables:
+**Important:** Environment variables in Vercel are set in the dashboard, NOT in `vercel.json`.
 
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `NEXT_PUBLIC_API_URL` | `https://your-backend.com` | Your FastAPI backend URL |
-| `NODE_ENV` | `production` | Production mode |
+### How to Set Environment Variables:
+
+1. Go to https://vercel.com/dashboard
+2. Select your project
+3. Settings → Environment Variables
+4. Click "Add New"
+5. Add each variable:
+
+| Key | Example Value | Description |
+|-----|---------------|-------------|
+| `NEXT_PUBLIC_API_URL` | `https://your-backend.railway.app` | Your FastAPI backend URL |
+
+**Important Notes:**
+- Variables starting with `NEXT_PUBLIC_` are exposed to the browser
+- After adding variables, you MUST redeploy for changes to take effect
+- Check all three environments: Production, Preview, Development
 
 ---
 

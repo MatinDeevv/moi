@@ -37,9 +37,12 @@ railway up
 
 **Frontend (Vercel):**
 1. Vercel Dashboard → Your Project
-2. Settings → Environment Variables
-3. Add: `NEXT_PUBLIC_API_URL` = `https://your-backend.railway.app`
-4. Redeploy: `vercel --prod`
+2. Settings → Environment Variables → Add New
+3. Key: `NEXT_PUBLIC_API_URL`
+4. Value: `https://your-backend.railway.app`
+5. Environments: ☑ All three (Production, Preview, Development)
+6. Save
+7. Deployments tab → Redeploy
 
 **Use this if:** You want to share with others
 

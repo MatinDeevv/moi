@@ -79,17 +79,31 @@ railway up
 
 #### Step 3: Configure Vercel Environment Variable
 
+**Important:** Environment variables in Vercel MUST be set in the dashboard, not in `vercel.json`.
+
 **In Vercel Dashboard:**
-1. Go to your project
-2. Settings → Environment Variables
-3. Add new variable:
-   - **Name:** `NEXT_PUBLIC_API_URL`
-   - **Value:** `https://project-me-production.up.railway.app` (your Railway URL)
-   - **Scope:** Production, Preview, Development
-4. Save
+1. Go to https://vercel.com/dashboard
+2. Select your project
+3. Go to **Settings** → **Environment Variables**
+4. Click **Add New**
+5. Add variable:
+   - **Key:** `NEXT_PUBLIC_API_URL`
+   - **Value:** `https://project-me-production.up.railway.app` (paste your Railway URL)
+   - **Environments:** Check all three boxes (Production, Preview, Development)
+6. Click **Save**
+
+**Note:** Variables starting with `NEXT_PUBLIC_` are exposed to the browser and can be used in client-side code.
 
 #### Step 4: Redeploy Vercel
 
+After adding the environment variable, you MUST redeploy:
+
+**Option A - Via Dashboard:**
+1. Go to Deployments tab
+2. Click the three dots (...) on latest deployment
+3. Click "Redeploy"
+
+**Option B - Via CLI:**
 ```bash
 cd app
 vercel --prod
