@@ -201,6 +201,46 @@ curl -X POST http://localhost:8000/tasks \
 
 ---
 
+## 🚀 Deployment
+
+### Local Development (Recommended)
+```bash
+# CLI Mode
+python main.py
+
+# Full Stack Mode
+start_api.bat  # Terminal 1
+start_web.bat  # Terminal 2
+```
+
+### Production Deployment
+
+**⚠️ Important:** The Next.js Web UI and Python FastAPI backend must be deployed separately.
+
+**Option 1: Vercel (Web UI) + Railway (Backend)**
+```bash
+# 1. Deploy backend to Railway
+npm install -g @railway/cli
+railway login
+railway init
+railway up
+
+# 2. Deploy frontend to Vercel
+cd app
+npm install -g vercel
+vercel
+# Set NEXT_PUBLIC_API_URL to your Railway URL
+```
+
+**Option 2: Self-Hosted (VPS)**
+- Both frontend and backend on same server
+- Use nginx for reverse proxy
+- SSL with Let's Encrypt
+
+📖 **Full Deployment Guide:** [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md)
+
+---
+
 ## 🔧 Configuration
 
 ### LM Studio Setup (for LLM features)
