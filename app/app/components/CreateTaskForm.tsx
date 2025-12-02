@@ -106,24 +106,24 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Create New Task</h2>
+      <h2 className="text-2xl font-bold text-gray-100">Create New Task</h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-300 rounded-lg p-4">
-          <p className="text-red-800 font-medium">Error: {error}</p>
+        <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4">
+          <p className="text-red-300 font-medium">Error: {error}</p>
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-300 rounded-lg p-4">
-          <p className="text-green-800 font-medium">✓ Task created successfully!</p>
+        <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-4">
+          <p className="text-green-300 font-medium">✓ Task created successfully!</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Task Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Task Type *
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -135,13 +135,13 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
                 className={`
                   text-left p-4 rounded-lg border-2 transition-all
                   ${taskType === type.value
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-indigo-500 bg-indigo-900/20'
+                    : 'border-gray-700 bg-gray-900 hover:border-gray-600'
                   }
                 `}
               >
-                <div className="font-medium text-gray-900">{type.label}</div>
-                <div className="text-sm text-gray-500 mt-1">{type.description}</div>
+                <div className="font-medium text-gray-100">{type.label}</div>
+                <div className="text-sm text-gray-400 mt-1">{type.description}</div>
               </button>
             ))}
           </div>
@@ -149,7 +149,7 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
 
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
             Title (optional)
           </label>
           <input
@@ -157,14 +157,14 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500"
             placeholder="A descriptive title for this task"
           />
         </div>
 
         {/* Tags */}
         <div>
-          <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="tags" className="block text-sm font-medium text-gray-300 mb-2">
             Tags (optional, comma-separated)
           </label>
           <input
@@ -172,14 +172,14 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
             id="tags"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500"
             placeholder="urgent, automation, test"
           />
         </div>
 
         {/* Payload */}
         <div>
-          <label htmlFor="payload" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="payload" className="block text-sm font-medium text-gray-300 mb-2">
             Payload (JSON) *
           </label>
           <textarea
@@ -187,10 +187,10 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
             value={payload}
             onChange={(e) => setPayload(e.target.value)}
             rows={10}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500"
             placeholder='{"key": "value"}'
           />
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-400">
             Example payload loaded for {TASK_TYPES.find(t => t.value === taskType)?.label}
           </p>
         </div>
@@ -203,8 +203,8 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
             className={`
               flex-1 px-6 py-3 rounded-lg font-medium text-white transition-colors
               ${loading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
+                ? 'bg-gray-600 cursor-not-allowed'
+                : 'bg-indigo-600 hover:bg-indigo-700'
               }
             `}
           >
@@ -220,7 +220,7 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               setError(null);
               setSuccess(false);
             }}
-            className="px-6 py-3 rounded-lg font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 rounded-lg font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 transition-colors border border-gray-700"
           >
             Reset
           </button>
