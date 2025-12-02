@@ -10,5 +10,9 @@ main.py
 test_system.py
 validate_system.py
 example_usage.py
+requirements.txt
+pyproject.toml
+Procfile
+railway.json
 
 

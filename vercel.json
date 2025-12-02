@@ -1,3 +1,10 @@
-{}
+{
+  "buildCommand": "cd app && npm run build",
+  "devCommand": "cd app && npm run dev",
+  "installCommand": "cd app && npm install",
+  "outputDirectory": "app/.next",
+  "framework": null,
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet ."
+}
 
 
