@@ -1,4 +1,4 @@
-# Ignore Python source files and old app directory
+# Ignore Python source files
 src/
 logs/
 __pycache__/
@@ -14,7 +14,5 @@ requirements.txt
 Procfile
 railway.json
 
-# Keep old app directory but don't deploy it
-app/
 
 

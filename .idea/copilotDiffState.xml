@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/vercel.json">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/vercel.json" />
+              <option name="originalContent" value="{}&#10;&#10;&#10;" />
+              <option name="updatedContent" value="{&#10;  &quot;outputDirectory&quot;: &quot;.next&quot;&#10;}&#10;&#10;&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
