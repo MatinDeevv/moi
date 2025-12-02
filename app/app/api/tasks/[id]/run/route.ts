@@ -117,12 +117,24 @@ export async function POST(
       } catch (parseError) {
         console.error(`[API/run-task] Runner returned non-JSON: ${text.slice(0, 500)}`);
 
+        // Detect if it's HTML (ngrok error page)
+        const isHtml = text.trim().toLowerCase().startsWith('<!doctype html') ||
+                       text.trim().toLowerCase().startsWith('<html');
+
+        let errorMessage = 'Runner returned invalid JSON';
+        if (isHtml) {
+          errorMessage = 'Runner URL returned HTML page instead of API response. This usually means:\n' +
+                        '• ngrok tunnel expired (restart ngrok and update Settings)\n' +
+                        '• Runner is not running (start with: python runner.py)\n' +
+                        '• Wrong URL in Settings (should be https://YOUR-ID.ngrok.io)';
+        }
+
         // Update task to failed with the raw text as output
         await updateTask(task.id, {
           ...task,
           status: 'failed',
           runnerStatus: 'failed',
-          errorMessage: 'Runner returned invalid JSON',
+          errorMessage,
           outputText: null,
           outputRaw: text.length > 5000 ? { truncated: text.slice(0, 5000) } : { raw: text },
         });
@@ -130,12 +142,12 @@ export async function POST(
         await createEvent({
           taskId: task.id,
           eventType: 'task_run_failed',
-          data: { error: 'Runner returned invalid JSON' }
+          data: { error: errorMessage }
         });
 
         return NextResponse.json({
           ok: false,
-          error: 'Runner returned invalid JSON'
+          error: errorMessage
         }, { status: 502 });
       }
 

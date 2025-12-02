@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     } catch (parseError) {
       console.error(`[API/sandbox/list] Runner returned non-JSON: ${text.slice(0, 200)}`);
       return NextResponse.json(
-        { ok: false, error: 'Runner returned invalid JSON' },
+        { ok: false, error: 'Runner returned invalid JSON', entries: [] },
         { status: 502 }
       );
     }
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       const errorMsg = runnerJson.error || `Runner failed with status ${response.status}`;
       console.error(`[API/sandbox/list] Runner error:`, errorMsg);
       return NextResponse.json(
-        { ok: false, error: errorMsg },
+        { ok: false, error: errorMsg, entries: [] },
         { status: 502 }
       );
     }
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('[API/sandbox/list] Error:', error.message);
     return NextResponse.json(
-      { ok: false, error: 'Internal server error' },
+      { ok: false, error: 'Internal server error', entries: [] },
       { status: 500 }
     );
   }

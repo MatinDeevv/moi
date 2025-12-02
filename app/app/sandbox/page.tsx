@@ -39,7 +39,8 @@ export default function SandboxPage() {
         throw new Error(json.error || 'Failed to load directory');
       }
 
-      setEntries(json.entries || []);
+      // Ensure entries is always an array
+      setEntries(Array.isArray(json.entries) ? json.entries : []);
     } catch (err) {
       console.error('[Sandbox] Load directory error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Failed to load directory';
@@ -52,6 +53,9 @@ export default function SandboxPage() {
       } else {
         setError(errorMsg);
       }
+
+      // Always set entries to empty array on error
+      setEntries([]);
     } finally {
       setLoading(false);
     }
