@@ -30,13 +30,28 @@ export default function SandboxPage() {
       const json = await res.json();
 
       if (!res.ok || !json.ok) {
+        // Check for runner not configured
+        if (json.error?.includes('Runner URL not configured')) {
+          setError('⚙️ Runner not configured. Go to Settings tab and set your runner URL.');
+          setEntries([]);
+          return;
+        }
         throw new Error(json.error || 'Failed to load directory');
       }
 
       setEntries(json.entries || []);
     } catch (err) {
       console.error('[Sandbox] Load directory error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load directory');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load directory';
+
+      // Make error messages more user-friendly
+      if (errorMsg.includes('Runner URL not configured')) {
+        setError('⚙️ Runner not configured. Go to Settings tab and set your runner URL.');
+      } else if (errorMsg.includes('invalid JSON')) {
+        setError('🔴 Runner returned invalid response. Make sure your runner is running (python runner.py)');
+      } else {
+        setError(errorMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -243,6 +258,14 @@ export default function SandboxPage() {
           <div className="space-y-1 max-h-[600px] overflow-y-auto">
             {loading ? (
               <div className="text-slate-400 text-center py-4">Loading...</div>
+            ) : error && error.includes('Runner not configured') ? (
+              <div className="text-center py-8 space-y-3">
+                <div className="text-4xl">⚙️</div>
+                <div className="text-slate-400">Runner not configured</div>
+                <div className="text-sm text-slate-500">
+                  Go to Settings tab and set your runner URL
+                </div>
+              </div>
             ) : entries.length === 0 ? (
               <div className="text-slate-500 text-center py-4">Empty directory</div>
             ) : (

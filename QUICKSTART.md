@@ -1,205 +1,211 @@
-# 🚀 QUICK START - Project ME v0.2
+# Project ME - Quick Start Checklist
 
-## ✅ Your app is ready! Here's how to run it:
+## ✅ Pre-Flight Checklist
 
-### **1. Start Local Server**
+Before using Sandbox or Shell features, make sure:
+
+### 1. Runner is Running
+
+Open a terminal and start the runner:
 
 ```bash
-cd C:\Users\matin\moi\app
-npm run dev
+cd C:\Users\matin\moi
+python runner.py
 ```
 
-### **2. Open Browser**
+**Expected output:**
+```
+INFO:     Started server process
+INFO:     Uvicorn running on http://0.0.0.0:4000
+```
 
-Go to: **http://localhost:3000**
+**Test it works:**
+Open browser to: `http://localhost:4000/health`
 
-### **3. You'll See:**
-- 🌙 **Dark mode dashboard**
-- 📋 **Tasks tab** (empty at first)
-- ➕ **Create Task tab**
-- 📊 **Events tab**
-- 🔧 **Diagnostics tab** ← Check this first!
-
----
-
-## 🎯 First Steps
-
-### **1. Check Diagnostics** (Recommended)
-
-1. Click "🔧 Diagnostics" tab
-2. Look for green ✅ checkmarks:
-   - ✅ Health Endpoint
-   - ✅ Tasks API
-   - ✅ Events API
-   - ⚠️ Remote Runner (not configured yet - optional)
-3. If all green → You're ready!
-
-### **2. Create Your First Task**
-
-1. Click "➕ Create Task" tab
-2. Fill in:
-   - **Title**: "My first task" (required)
-   - **Type**: Select "generic_llm" or "shell"
-   - **Payload**: Leave the example JSON or customize
-   - **Tags**: Optional (e.g., "test, demo")
-3. Click "Create Task"
-4. ✅ You'll see "Task created successfully!"
-
-### **3. View Your Task**
-
-1. Click "📋 Tasks" tab
-2. You'll see your task with:
-   - Status badge (pending/running/completed/failed)
-   - Created timestamp
-   - Click "View Details" for full info
-
-### **4. View Events**
-
-1. Click "📊 Events" tab
-2. You'll see `task_created` event
+Should see:
+```json
+{
+  "ok": true,
+  "runner": "online"
+}
+```
 
 ---
 
-## 🏃 Run a Task (Optional - Needs Runner)
+### 2. Expose Runner via ngrok
 
-### **Without Runner**
-Tasks will stay in "pending" status. This is fine for testing the UI!
+In a **second terminal**:
 
-### **With Runner** (Advanced)
+```bash
+ngrok http 4000
+```
 
-#### **Option A: Skip for now**
-Just test the UI. Tasks will remain pending.
+**Copy the HTTPS URL** from ngrok output:
+```
+Forwarding  https://abc123.ngrok.io -> http://localhost:4000
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+            Copy this URL
+```
 
-#### **Option B: Set up runner**
+---
 
-1. **Create `.env.local` in `app/` folder:**
-   ```env
-   RUNNER_BASE_URL=https://your-ngrok-url.ngrok.io
-   ```
+### 3. Configure Settings in Web UI
 
-2. **On your PC, create a simple runner** (Python example):
-   ```python
-   # runner.py
-   from flask import Flask, request, jsonify
-   
-   app = Flask(__name__)
-   
-   @app.route('/run-task', methods=['POST'])
-   def run_task():
-       task = request.json
-       print(f"Running task: {task['taskId']}")
-       
-       # Do your work here...
-       
-       return jsonify({
-           "status": "completed",
-           "result": {"message": "Task done!"}
-       })
-   
-   if __name__ == '__main__':
-       app.run(port=5000)
-   ```
+1. Go to your deployed Project ME site (or `localhost:3000` if running locally)
+2. Click **Settings** tab in the top navigation
+3. Paste your ngrok URL into **Runner URL** field
+   - Example: `https://abc123.ngrok.io`
+   - **Do NOT include trailing slash**
+4. (Optional) Set a **Runner Token** if you want auth
+5. Click **Test** button - should say "Runner online"
+6. Click **Save**
 
-3. **Run it:**
+**Screenshot of what Settings should look like:**
+```
+Runner URL:    https://abc123.ngrok.io
+Runner Token:  [optional]
+               
+               [Test]  [Save]
+               
+Status: ✅ Runner online
+```
+
+---
+
+### 4. Verify Sandbox Works
+
+1. Click **Sandbox** tab
+2. Should see: `README.md` file
+3. Click it → content loads
+4. Try creating a new file → works!
+
+**If you see errors:**
+
+❌ **"Runner URL not configured"**
+→ Go to Settings tab and configure runner URL (step 3)
+
+❌ **"Runner returned invalid JSON"**
+→ Make sure runner is running (`python runner.py`)
+→ Check ngrok is forwarding to port 4000
+
+❌ **"Connection refused"**
+→ Runner isn't running - start it with `python runner.py`
+
+---
+
+### 5. Test Shell (Dev Mode Only)
+
+1. Toggle to **Dev** mode (top right)
+2. Click **Shell** tab
+3. Type: `dir` (Windows) or `ls` (Linux/Mac)
+4. Press Enter
+5. Should see files in sandbox directory
+
+---
+
+## 🔧 Troubleshooting
+
+### Error: "Runner returned invalid JSON"
+
+**Cause:** Runner endpoint didn't return proper JSON
+
+**Fix:**
+1. Make sure you're running the latest `runner.py`:
    ```bash
+   git pull origin main
    python runner.py
    ```
 
-4. **Expose with ngrok:**
+2. Test the endpoint directly:
    ```bash
-   ngrok http 5000
+   curl http://localhost:4000/sandbox/list
+   ```
+   
+   Should return valid JSON like:
+   ```json
+   {"ok":true,"entries":[{"name":"README.md","type":"file"}]}
    ```
 
-5. **Copy ngrok URL to `.env.local`**
+---
 
-6. **Restart dev server**
+### Error: "Runner URL not configured"
 
-7. **Now click "▶ Run Next Task"** → It works!
+**Cause:** You haven't set the runner URL in Settings yet
+
+**Fix:**
+1. Go to Settings tab
+2. Paste your ngrok URL
+3. Click Test, then Save
 
 ---
 
-## 🎨 What You Have
+### Error: "Failed to load resource: 500"
 
-### **Working Features** ✅
-- Dark mode UI throughout
-- Create tasks via form
-- View all tasks with filtering
-- Task details modal
-- Events log
-- Diagnostics panel
-- Heavy logging (check console F12)
-- Error handling
+**Cause:** API route can't reach runner
 
-### **Working API Routes** ✅
-- `GET /api/tasks` - List tasks
-- `POST /api/tasks` - Create task
-- `GET /api/tasks/[id]` - Get task
-- `PATCH /api/tasks/[id]` - Update task
-- `DELETE /api/tasks/[id]` - Delete task
-- `POST /api/tasks/[id]/run` - Run task
-- `GET /api/events` - List events
-- `GET /api/health` - Health check
-
-### **MartinDB Storage** ✅
-- Tasks stored in `app/data/tasks.json`
-- Events stored in `app/data/events.json`
-- Auto-creates files if missing
-- Survives server restarts (locally)
-- Will reset on Vercel redeploy (expected)
+**Fix:**
+1. Check runner is running: `python runner.py`
+2. Check ngrok is running: `ngrok http 4000`
+3. Verify ngrok URL is correct in Settings
+4. Click Test in Settings to verify connection
 
 ---
 
-## 🔍 Debugging
+## 📋 Daily Workflow
 
-### **Check Browser Console** (F12)
-- All client actions logged with prefixes
-- `[Client]` - API calls
-- `[TaskList]` - Task loading
-- `[CreateTaskForm]` - Task creation
+Every time you want to use Project ME:
 
-### **Check Server Terminal**
-- All API requests logged
-- `[MartinDB]` - Database ops
-- `[API/tasks]` - Task endpoints
-- `[API/events]` - Event endpoints
-- `[Runner]` - Runner calls (if configured)
-
-### **Check Diagnostics Tab**
-- Quick health check
-- Shows what's working (green ✅)
-- Shows what's broken (red ❌)
+1. **Start runner:** `python runner.py` (Terminal 1)
+2. **Start ngrok:** `ngrok http 4000` (Terminal 2)
+3. **Copy ngrok URL** (it changes every time)
+4. **Update Settings** in web UI with new URL
+5. **Start using** Sandbox/Shell/Tasks
 
 ---
 
-## 🚀 Deploy to Vercel
+## 🎯 Quick Test
 
-When you're ready:
+Run this to verify everything works:
 
+### Terminal 1:
 ```bash
-# Already pushed to GitHub
-# Vercel will auto-detect and deploy
+cd C:\Users\matin\moi
+python runner.py
 ```
 
-Then set `RUNNER_BASE_URL` in Vercel dashboard.
+### Terminal 2:
+```bash
+ngrok http 4000
+```
+
+### Browser:
+1. Visit `http://localhost:4000/health` → Should work
+2. Copy ngrok URL from Terminal 2
+3. Go to your Project ME site → Settings tab
+4. Paste ngrok URL → Test → Save
+5. Go to Sandbox tab → Should see README.md
+
+✅ **If all these work, you're ready!**
 
 ---
 
-## ✅ You're Done!
+## 💡 Pro Tips
 
-Your app is:
-- ✅ Built with no errors
-- ✅ Running locally
-- ✅ Dark mode enabled
-- ✅ Fully functional
-- ✅ Ready to use
-
-**Enjoy your automation dashboard! 🎉**
+- **Keep terminals open** - Don't close runner or ngrok
+- **Bookmark ngrok dashboard** - `http://localhost:4040` to see requests
+- **Use paid ngrok** - Get a static domain (no more URL changes!)
+- **Add runner token** - For extra security, set `RUNNER_TOKEN` env var
+- **Check logs** - Runner prints useful debug info
 
 ---
 
-**Need help?** Check:
-- `IMPLEMENTATION_COMPLETE.md` - Full documentation
-- `READY_FOR_DEPLOYMENT.md` - Deployment guide
-- Browser console (F12) - Live logs
-- Server terminal - API logs
+## 🚀 Ready!
+
+Once you complete the checklist:
+- ✅ Sandbox tab works
+- ✅ Shell tab works (Dev mode)
+- ✅ Tasks can run via runner
+- ✅ Settings persist across sessions
+
+**Happy automating!** 🎉
 
