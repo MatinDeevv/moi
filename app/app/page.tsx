@@ -29,16 +29,16 @@ export default function Home() {
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-md p-1 flex gap-1 border border-gray-200">
+      <div className="bg-slate-900 rounded-xl border border-slate-800 p-1 flex gap-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`
-              flex-1 px-6 py-3 rounded-md font-medium transition-all
+              flex-1 px-6 py-3 rounded-lg font-medium transition-all text-sm
               ${activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               }
             `}
           >
@@ -52,7 +52,7 @@ export default function Home() {
       <RunTaskButton onTaskRun={handleRefresh} />
 
       {/* Tab Content */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
         {activeTab === 'tasks' && (
           <TaskList
             refreshTrigger={refreshTrigger}
@@ -85,138 +85,171 @@ export default function Home() {
       {/* Task Details Modal */}
       {selectedTask && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           onClick={() => setSelectedTask(null)}
         >
           <div
-            className="bg-white border border-gray-300 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Task Details</h2>
+            {/* Header */}
+            <div className="sticky top-0 bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <h2 className="text-2xl font-bold text-slate-100">Task Details</h2>
+                <span className={`
+                  px-3 py-1 rounded-full text-xs font-medium
+                  ${selectedTask.status === 'completed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : ''}
+                  ${selectedTask.status === 'failed' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : ''}
+                  ${selectedTask.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : ''}
+                  ${selectedTask.status === 'running' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : ''}
+                `}>
+                  {selectedTask.status}
+                </span>
+              </div>
               <button
                 onClick={() => setSelectedTask(null)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-slate-400 hover:text-slate-200 text-2xl transition-colors"
               >
                 ×
               </button>
             </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {/* Title and Status */}
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Task Info */}
+              <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700">ID</label>
-                  <p className="font-mono text-sm text-gray-900">{selectedTask.id}</p>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">ID</label>
+                  <p className="font-mono text-sm text-slate-300 mt-1">{selectedTask.id}</p>
                 </div>
 
                 {selectedTask.title && (
                   <div>
-                    <label className="text-sm font-semibold text-gray-700">Title</label>
-                    <p className="text-gray-900">{selectedTask.title}</p>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Title</label>
+                    <p className="text-lg text-slate-100 mt-1 font-medium">{selectedTask.title}</p>
                   </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-gray-700">Type</label>
-                    <p className="text-gray-900">{selectedTask.type}</p>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Type</label>
+                    <p className="text-slate-200 mt-1">{selectedTask.type || 'general'}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Status</label>
-                    <span className={`
-                      inline-block px-3 py-1 rounded-full text-sm font-medium ml-2
-                      ${selectedTask.status === 'completed' ? 'bg-green-100 text-green-800 border border-green-300' : ''}
-                      ${selectedTask.status === 'failed' ? 'bg-red-100 text-red-800 border border-red-300' : ''}
-                      ${selectedTask.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' : ''}
-                      ${selectedTask.status === 'running' ? 'bg-blue-100 text-blue-800 border border-blue-300' : ''}
-                    `}>
-                      {selectedTask.status}
-                    </span>
-                  </div>
+                  {selectedTask.outputRaw?.raw?.model && (
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Model</label>
+                      <p className="text-slate-200 mt-1 font-mono text-sm">{selectedTask.outputRaw.raw.model}</p>
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                {/* LLM Output Section */}
-                {selectedTask.outputText && (
-                  <div className="border-t-2 border-blue-200 pt-4">
-                    <label className="text-lg font-bold text-gray-900 mb-2 block">📄 LLM Output</label>
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-300 max-h-96 overflow-y-auto">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-900 font-mono leading-relaxed">
-                        {selectedTask.outputText}
+              {/* Prompt Section */}
+              {selectedTask.payload && (selectedTask.payload.prompt || selectedTask.payload.system_prompt) && (
+                <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 space-y-3">
+                  <label className="text-sm font-bold text-blue-400 flex items-center space-x-2">
+                    <span>💬</span>
+                    <span>Prompt</span>
+                  </label>
+
+                  {selectedTask.payload.system_prompt && (
+                    <div className="bg-slate-900 border border-slate-700 rounded p-3">
+                      <div className="text-xs text-slate-500 mb-2">System:</div>
+                      <pre className="text-sm text-slate-300 whitespace-pre-wrap font-mono">
+                        {selectedTask.payload.system_prompt}
                       </pre>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Error Message Section */}
-                {selectedTask.errorMessage && (
-                  <div className="border-t-2 border-red-200 pt-4">
-                    <label className="text-lg font-bold text-red-800 mb-2 block">❌ Error</label>
-                    <div className="bg-red-50 p-4 rounded-lg border-2 border-red-300">
-                      <p className="text-red-900 font-medium">{selectedTask.errorMessage}</p>
+                  {selectedTask.payload.prompt && (
+                    <div className="bg-slate-900 border border-slate-700 rounded p-3">
+                      <div className="text-xs text-slate-500 mb-2">User:</div>
+                      <pre className="text-sm text-slate-100 whitespace-pre-wrap">
+                        {selectedTask.payload.prompt}
+                      </pre>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
 
-                {/* Metadata Section */}
-                {selectedTask.tags && selectedTask.tags.length > 0 && (
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Tags</label>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {selectedTask.tags.map((tag, i) => (
-                        <span key={i} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm border border-gray-300">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Created</label>
-                    <p className="text-gray-900">{new Date(selectedTask.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Updated</label>
-                    <p className="text-gray-900">{new Date(selectedTask.updatedAt).toLocaleString()}</p>
+              {/* LLM Output Section */}
+              {selectedTask.outputText && (
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg p-5 space-y-3">
+                  <label className="text-sm font-bold text-green-400 flex items-center space-x-2">
+                    <span>✨</span>
+                    <span>LLM Output</span>
+                  </label>
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 max-h-96 overflow-y-auto">
+                    <pre className="whitespace-pre-wrap text-sm text-slate-200 leading-relaxed">
+                      {selectedTask.outputText}
+                    </pre>
                   </div>
                 </div>
+              )}
 
-                {selectedTask.lastRunAt && (
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Last Run</label>
-                    <p className="text-gray-900">{new Date(selectedTask.lastRunAt).toLocaleString()}</p>
-                  </div>
-                )}
+              {/* Error Section */}
+              {selectedTask.errorMessage && (
+                <div className="bg-red-500/10 border-2 border-red-500/30 rounded-lg p-4">
+                  <label className="text-sm font-bold text-red-400 flex items-center space-x-2 mb-2">
+                    <span>❌</span>
+                    <span>Error</span>
+                  </label>
+                  <p className="text-red-300 font-medium">{selectedTask.errorMessage}</p>
+                </div>
+              )}
 
-                {/* Raw Response Toggle */}
-                {selectedTask.outputRaw && (
-                  <details className="border-t border-gray-200 pt-4">
-                    <summary className="cursor-pointer text-sm font-semibold text-gray-700 hover:text-gray-900">
-                      🔧 Show Raw Runner Response
-                    </summary>
-                    <pre className="bg-gray-50 p-4 rounded mt-2 overflow-x-auto text-xs text-gray-900 border border-gray-200 max-h-64 overflow-y-auto">
-                      {JSON.stringify(selectedTask.outputRaw, null, 2)}
-                    </pre>
-                  </details>
-                )}
-
+              {/* Metadata */}
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700">Payload</label>
-                  <pre className="bg-gray-50 p-4 rounded mt-1 overflow-x-auto text-sm text-gray-900 border border-gray-200">
-                    {JSON.stringify(selectedTask.payload, null, 2)}
-                  </pre>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Created</label>
+                  <p className="text-slate-300 text-sm mt-1">{new Date(selectedTask.createdAt).toLocaleString()}</p>
                 </div>
-
-                {selectedTask.runnerStatus && (
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Runner Status</label>
-                    <pre className="bg-gray-50 p-4 rounded mt-1 overflow-x-auto text-sm text-gray-900 border border-gray-200">
-                      {selectedTask.runnerStatus}
-                    </pre>
-                  </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Updated</label>
+                  <p className="text-slate-300 text-sm mt-1">{new Date(selectedTask.updatedAt).toLocaleString()}</p>
+                </div>
+                {selectedTask.lastRunAt && (
+                  <>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Last Run</label>
+                      <p className="text-slate-300 text-sm mt-1">{new Date(selectedTask.lastRunAt).toLocaleString()}</p>
+                    </div>
+                    {selectedTask.runnerStatus && (
+                      <div>
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Runner Status</label>
+                        <p className="text-slate-300 text-sm mt-1">{selectedTask.runnerStatus}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
+
+              {/* Tags */}
+              {selectedTask.tags && selectedTask.tags.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Tags</label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedTask.tags.map((tag, i) => (
+                      <span key={i} className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-sm border border-slate-700">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Raw Response Toggle */}
+              {selectedTask.outputRaw && (
+                <details className="border-t border-slate-800 pt-4">
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-400 hover:text-slate-200 transition-colors flex items-center space-x-2">
+                    <span>🔧</span>
+                    <span>Show Raw Runner Response</span>
+                  </summary>
+                  <pre className="bg-slate-950 border border-slate-800 p-4 rounded-lg mt-3 overflow-x-auto text-xs text-slate-400 max-h-64 overflow-y-auto">
+                    {JSON.stringify(selectedTask.outputRaw, null, 2)}
+                  </pre>
+                </details>
+              )}
             </div>
           </div>
         </div>
