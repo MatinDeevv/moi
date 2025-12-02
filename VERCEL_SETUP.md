@@ -1,8 +1,30 @@
 # Vercel Deployment Configuration
 
-## Important: Root Directory Setting
+## ✅ Automatic Configuration (Latest Update)
 
-Since the Next.js app is in the `app/` subdirectory, you need to configure Vercel to use it as the root directory.
+The repository is now configured to deploy automatically to Vercel without manual configuration!
+
+### What's Configured:
+
+- **Build Command:** `cd app && npm run build`
+- **Install Command:** `cd app && npm install`
+- **Output Directory:** `app/.next`
+- **Framework Detection:** Disabled (Next.js only)
+- **Python Files:** Ignored via `.vercelignore`
+
+### Quick Deploy:
+
+1. Connect your GitHub repository to Vercel
+2. Vercel will automatically detect the configuration
+3. Deploy! 🚀
+
+No manual configuration needed in Vercel dashboard.
+
+---
+
+## Alternative: Manual Configuration (If Needed)
+
+If automatic detection doesn't work, configure manually:
 
 ### Steps to Configure in Vercel Dashboard:
 
@@ -13,9 +35,7 @@ Since the Next.js app is in the `app/` subdirectory, you need to configure Verce
 5. Enter: `app`
 6. Click **Save**
 
-### Alternative: Deploy from app/ directory
-
-You can also push only the `app/` directory to a separate repository and deploy that directly.
+---
 
 ## Current Structure
 
