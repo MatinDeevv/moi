@@ -41,6 +41,15 @@ export async function initializeDatabase() {
       )
     `)
 
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Settings" (
+        "id" INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+        "runnerUrl" TEXT,
+        "runnerToken" TEXT,
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
     // Create indexes
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Task_status_idx" ON "Task"("status")`)
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Task_createdAt_idx" ON "Task"("createdAt")`)
