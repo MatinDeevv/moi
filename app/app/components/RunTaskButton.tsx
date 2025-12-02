@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getTasks, runTask } from '../lib/api';
+import { getTasks, runTask } from '@/lib/api';
 
 interface RunTaskButtonProps {
   onTaskRun?: () => void;

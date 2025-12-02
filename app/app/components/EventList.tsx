@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getEvents, Event } from '../lib/api';
+import { getEvents, Event } from '@/lib/api';
 
 interface EventListProps {
   refreshTrigger?: number;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { checkHealth, getTasks, getEvents } from '../lib/api';
+import { checkHealth, getTasks, getEvents } from '@/lib/api';
 
 export default function DiagnosticsPanel() {
   const [health, setHealth] = useState<any>(null);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createTask } from '../lib/api';
+import { createTask } from '@/lib/api';
 
 interface CreateTaskFormProps {
   onTaskCreated?: () => void;

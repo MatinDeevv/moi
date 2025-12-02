@@ -7,7 +7,7 @@ import RunTaskButton from './components/RunTaskButton';
 import EventList from './components/EventList';
 import DiagnosticsPanel from './components/DiagnosticsPanel';
 import SettingsPage from './settings/page';
-import { Task } from './lib/api';
+import { Task } from '@/lib/api';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'create' | 'events' | 'diagnostics' | 'settings'>('tasks');

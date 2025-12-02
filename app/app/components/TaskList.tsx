@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getTasks, Task } from '../lib/api';
+import { getTasks, Task } from '@/lib/api';
 
 interface TaskListProps {
   refreshTrigger?: number;
