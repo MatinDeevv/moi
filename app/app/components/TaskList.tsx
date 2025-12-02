@@ -43,30 +43,30 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
     switch (status) {
       case 'done':
       case 'completed':
-        return 'bg-green-100 text-green-800 border border-green-300';
+        return 'bg-green-500/20 text-green-400 border border-green-500/30';
       case 'failed':
-        return 'bg-red-100 text-red-800 border border-red-300';
+        return 'bg-red-500/20 text-red-400 border border-red-500/30';
       case 'pending':
         return 'bg-gray-800 text-gray-300 border border-gray-700';
       case 'running':
-        return 'bg-blue-100 text-blue-800 border border-blue-300';
+        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
       default:
-        return 'bg-gray-100 text-gray-800 border border-gray-300';
+        return 'bg-gray-800 text-gray-300 border border-gray-700';
     }
   };
 
   if (loading && tasks.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-300 rounded-lg p-4">
-        <p className="text-red-800">Error: {error}</p>
+      <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4">
+        <p className="text-red-300">Error: {error}</p>
         <button
           onClick={loadTasks}
           className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -80,10 +80,10 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Tasks</h2>
+        <h2 className="text-2xl font-bold text-gray-100">Tasks</h2>
         <button
           onClick={loadTasks}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
         >
           🔄 Refresh
         </button>
@@ -92,7 +92,7 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-900 p-4 rounded-lg border border-gray-800">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Status
           </label>
           <select
@@ -109,13 +109,13 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Type
           </label>
           <select
             value={filter.type}
             onChange={(e) => setFilter({ ...filter, type: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           >
             <option value="">All</option>
             <option value="shell">Shell</option>
@@ -127,13 +127,13 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Limit
           </label>
           <select
             value={filter.limit}
             onChange={(e) => setFilter({ ...filter, limit: Number(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           >
             <option value="20">20</option>
             <option value="50">50</option>
@@ -144,7 +144,7 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
       </div>
 
       {/* Task count */}
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-400">
         Showing {tasks.length} task{tasks.length !== 1 ? 's' : ''}
       </p>
 
@@ -179,7 +179,7 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
               </tr>
             </thead>
             <tbody className="bg-[#0f172a] divide-y divide-gray-800">
-              {filteredTasks.map((task) => (
+ta base schem to be the same across deployments               {tasks.map((task) => (
                 <tr key={task.id} className="hover:bg-gray-900">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="font-mono text-xs text-gray-600">
