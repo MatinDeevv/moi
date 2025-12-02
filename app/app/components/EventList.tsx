@@ -148,7 +148,7 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
           {events.map((event, index) => (
             <div
               key={index}
-              className="bg-[#0f172a] border border-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow">
+              className="bg-[#0f172a] border border-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
