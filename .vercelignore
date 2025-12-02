@@ -1,18 +1,26 @@
-# Ignore Python source files
+# Ignore ALL Python files to prevent FastAPI detection
+*.py
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
 src/
 logs/
-__pycache__/
-*.pyc
 .venv/
 venv/
 .pytest_cache/
-main.py
-test_system.py
-validate_system.py
-example_usage.py
 requirements.txt
+pyproject.toml
+setup.py
 Procfile
 railway.json
+
+# Ignore Python directories
+**/__pycache__/
+**/*.pyc
+**/src/
+**/venv/
+**/.venv/
 
 
 
