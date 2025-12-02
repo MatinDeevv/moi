@@ -292,6 +292,57 @@ All errors logged with:
 
 ---
 
+## 12. Troubleshooting
+
+### Error: "The table `main.Settings` does not exist"
+
+**Cause:** The Settings table hasn't been created in the database yet.
+
+**Solution:** This is automatically fixed now. The `initDb.ts` file creates the Settings table on the first API call.
+
+**What happens:**
+1. First request to `/api/settings/runner` triggers `initializeDatabase()`
+2. Settings table is created with `CREATE TABLE IF NOT EXISTS`
+3. Subsequent requests work normally
+
+**If you still see this error:**
+1. Check Vercel logs to see if initialization succeeded
+2. The database might be read-only or permissions issue
+3. Ensure `DATABASE_URL` env var is set in Vercel (should point to SQLite file or Postgres)
+
+### Error: Build fails with "Module not found: Can't resolve '../lib/api'"
+
+**Cause:** Components using relative paths instead of TypeScript path aliases.
+
+**Solution:** All imports should use `@/lib/api` instead of `../lib/api`.
+
+**Fixed in commit:** `c5cd070`
+
+### Settings not persisting across deployments
+
+**Expected behavior:** This is normal for SQLite on Vercel's ephemeral filesystem.
+
+**Solutions:**
+1. **Use Vercel Postgres** (recommended for production)
+2. **Use environment variables** as fallback (Settings UI will take priority when set)
+3. **Use a persistent database** like PlanetScale, Supabase, etc.
+
+### Runner test fails but runner is actually online
+
+**Possible causes:**
+1. **CORS issue:** Runner needs to allow requests from your Vercel domain
+2. **Timeout:** Runner taking >5 seconds to respond (increase timeout in test route)
+3. **Runner doesn't have /health endpoint:** Implement it in your runner
+
+**Quick fix for runner.py:**
+```python
+@app.get("/health")
+def health():
+    return {"ok": True, "status": "online"}
+```
+
+---
+
 **Status:** ✅ Complete and ready to use
 
 You can now paste your daily ngrok URL into the Settings page without touching environment variables or redeploying! 🎉
