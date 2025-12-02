@@ -27,33 +27,28 @@
 }
 
 :root {
-  --foreground-rgb: 226, 232, 240;
-  --background-start-rgb: 2, 6, 23;
-  --background-end-rgb: 15, 23, 42;
-
-  /* Design tokens */
-  --surface-1: #0b1220;
+  /* Color palette - AI workstation theme */
+  --background: #020617;
+  --surface-1: #0b1120;
   --surface-2: #0f172a;
-  --surface-3: #1e293b;
-  --border-subtle: #1e293b;
-  --border-default: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-primary: #3b82f6;
-  --accent-hover: #2563eb;
+  --border: #1f2937;
+  --border-subtle: #374151;
+
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  --accent-primary: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-active: #4f46e5;
+
   --success: #10b981;
   --warning: #f59e0b;
-  --error: #ef4444;
+  --danger: #ef4444;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: var(--background);
+  color: var(--text-primary);
 }
 
