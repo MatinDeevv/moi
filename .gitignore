@@ -1,40 +1,42 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-ENV/
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
+.next/
+out/
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
+# Production
+*.log
+*.tsbuildinfo
+next-env.d.ts
 
-# Project specific - keep logs for debugging, but ignore if needed
-# logs/
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Prisma
+/lib/generated/prisma
+prisma/*.db
+prisma/*.db-journal
