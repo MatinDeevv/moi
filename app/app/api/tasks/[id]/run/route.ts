@@ -117,11 +117,14 @@ export async function POST(
       } catch (parseError) {
         console.error(`[API/run-task] Runner returned non-JSON: ${text.slice(0, 500)}`);
 
-        // Update task to failed
+        // Update task to failed with the raw text as output
         await updateTask(task.id, {
           ...task,
           status: 'failed',
-          runnerStatus: 'error: runner returned invalid JSON',
+          runnerStatus: 'failed',
+          errorMessage: 'Runner returned invalid JSON',
+          outputText: null,
+          outputRaw: text.length > 5000 ? { truncated: text.slice(0, 5000) } : { raw: text },
         });
 
         await createEvent({
@@ -142,11 +145,14 @@ export async function POST(
         console.error(`[API/run-task] Runner error:`, errorMsg);
         console.error(`[API/run-task] Runner response:`, runnerJson);
 
-        // Update task to failed
+        // Update task to failed with error details
         const failedTask = await updateTask(task.id, {
           ...task,
           status: 'failed',
-          runnerStatus: `error: ${errorMsg}`,
+          runnerStatus: 'failed',
+          errorMessage: errorMsg,
+          outputText: null,
+          outputRaw: runnerJson,
         });
 
         await createEvent({
@@ -162,13 +168,44 @@ export async function POST(
         }, { status: 502 });
       }
 
-      // Success - update task with runner response
+      // Success - extract LLM output from runner response
       const finalStatus = runnerJson.status || 'completed';
+
+      // Extract LLM output text from various possible locations
+      let outputText: string | null = null;
+
+      // Try multiple common patterns for LLM output
+      if (runnerJson.raw?.choices?.[0]?.message?.content) {
+        // LM Studio /v1/chat/completions format
+        outputText = runnerJson.raw.choices[0].message.content;
+      } else if (runnerJson.output) {
+        // Simple output field
+        outputText = typeof runnerJson.output === 'string'
+          ? runnerJson.output
+          : JSON.stringify(runnerJson.output, null, 2);
+      } else if (runnerJson.content) {
+        // Alternative content field
+        outputText = runnerJson.content;
+      } else if (runnerJson.message) {
+        // Message field
+        outputText = runnerJson.message;
+      } else if (runnerJson.result) {
+        // Result field
+        outputText = typeof runnerJson.result === 'string'
+          ? runnerJson.result
+          : JSON.stringify(runnerJson.result, null, 2);
+      }
+
+      console.log(`[API/run-task] Extracted outputText length=${outputText?.length || 0}`);
+
       const finalTask = await updateTask(task.id, {
         ...task,
         lastRunAt: runnerJson.finishedAt ? new Date(runnerJson.finishedAt) : new Date(),
         runnerStatus: finalStatus,
         status: finalStatus,
+        outputText: outputText,
+        outputRaw: runnerJson,
+        errorMessage: null, // Clear any previous errors
       });
 
       console.log(`[API/run-task] Runner success for task ${taskId}, status=${finalStatus}`);
@@ -179,7 +216,8 @@ export async function POST(
         eventType: 'task_run_completed',
         data: {
           runnerStatus: finalTask.runnerStatus,
-          taskStatus: finalTask.status
+          taskStatus: finalTask.status,
+          hasOutput: !!outputText
         }
       });
 
@@ -195,11 +233,14 @@ export async function POST(
       console.error('[API/run-task] Error calling remote runner:', runnerError.message);
       console.error(runnerError.stack);
 
-      // Update task to failed
+      // Update task to failed with error details
       const failedTask = await updateTask(task.id, {
         ...task,
         status: 'failed',
-        runnerStatus: `error: ${runnerError.message}`,
+        runnerStatus: 'failed',
+        errorMessage: `Runner execution failed: ${runnerError.message}`,
+        outputText: null,
+        outputRaw: null,
       });
 
       // Add error event

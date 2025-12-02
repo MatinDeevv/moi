@@ -18,6 +18,9 @@ export interface Task {
   updatedAt: Date
   lastRunAt?: Date | null
   runnerStatus?: string | null
+  outputText?: string | null
+  outputRaw?: any
+  errorMessage?: string | null
 }
 
 export interface Event {
@@ -73,6 +76,9 @@ export async function getTasks(filters?: {
     type: task.type || undefined,
     lastRunAt: task.lastRunAt || undefined,
     runnerStatus: task.runnerStatus || undefined,
+    outputText: task.outputText || undefined,
+    outputRaw: task.outputRaw ? JSON.parse(task.outputRaw) : undefined,
+    errorMessage: task.errorMessage || undefined,
   }))
 }
 
@@ -99,6 +105,9 @@ export async function getTaskById(id: string) {
     type: task.type || undefined,
     lastRunAt: task.lastRunAt || undefined,
     runnerStatus: task.runnerStatus || undefined,
+    outputText: task.outputText || undefined,
+    outputRaw: task.outputRaw ? JSON.parse(task.outputRaw) : undefined,
+    errorMessage: task.errorMessage || undefined,
   }
 }
 
@@ -133,6 +142,9 @@ export async function createTask(data: {
     type: task.type || undefined,
     lastRunAt: task.lastRunAt || undefined,
     runnerStatus: task.runnerStatus || undefined,
+    outputText: task.outputText || undefined,
+    outputRaw: task.outputRaw ? JSON.parse(task.outputRaw) : undefined,
+    errorMessage: task.errorMessage || undefined,
   }
 }
 
@@ -150,6 +162,9 @@ export async function updateTask(id: string, data: Partial<Task>) {
   if (data.tags !== undefined) updateData.tags = data.tags.length > 0 ? JSON.stringify(data.tags) : null
   if (data.lastRunAt !== undefined) updateData.lastRunAt = data.lastRunAt
   if (data.runnerStatus !== undefined) updateData.runnerStatus = data.runnerStatus
+  if (data.outputText !== undefined) updateData.outputText = data.outputText
+  if (data.outputRaw !== undefined) updateData.outputRaw = data.outputRaw ? JSON.stringify(data.outputRaw) : null
+  if (data.errorMessage !== undefined) updateData.errorMessage = data.errorMessage
 
   const task = await prisma.task.update({
     where: { id },
@@ -166,6 +181,9 @@ export async function updateTask(id: string, data: Partial<Task>) {
     type: task.type || undefined,
     lastRunAt: task.lastRunAt || undefined,
     runnerStatus: task.runnerStatus || undefined,
+    outputText: task.outputText || undefined,
+    outputRaw: task.outputRaw ? JSON.parse(task.outputRaw) : undefined,
+    errorMessage: task.errorMessage || undefined,
   }
 }
 

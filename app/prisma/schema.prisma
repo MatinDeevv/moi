@@ -23,6 +23,11 @@ model Task {
   lastRunAt     DateTime?
   runnerStatus  String?
 
+  // LLM Output fields
+  outputText    String?  // Main human-readable LLM output
+  outputRaw     String?  // Raw JSON response from runner (stored as JSON string)
+  errorMessage  String?  // Error message if runner failed
+
   events        Event[]
 
   @@index([status])

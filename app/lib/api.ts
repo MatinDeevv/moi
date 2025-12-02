@@ -14,6 +14,9 @@ export interface Task {
   type?: string;
   payload?: any;
   tags?: string[];
+  outputText?: string;
+  outputRaw?: any;
+  errorMessage?: string;
 }
 
 export interface Event {

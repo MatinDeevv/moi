@@ -103,6 +103,7 @@ export default function Home() {
             </div>
             <div className="p-6">
               <div className="space-y-4">
+                {/* Title and Status */}
                 <div>
                   <label className="text-sm font-semibold text-gray-700">ID</label>
                   <p className="font-mono text-sm text-gray-900">{selectedTask.id}</p>
@@ -134,6 +135,29 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* LLM Output Section */}
+                {selectedTask.outputText && (
+                  <div className="border-t-2 border-blue-200 pt-4">
+                    <label className="text-lg font-bold text-gray-900 mb-2 block">📄 LLM Output</label>
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-300 max-h-96 overflow-y-auto">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-900 font-mono leading-relaxed">
+                        {selectedTask.outputText}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Message Section */}
+                {selectedTask.errorMessage && (
+                  <div className="border-t-2 border-red-200 pt-4">
+                    <label className="text-lg font-bold text-red-800 mb-2 block">❌ Error</label>
+                    <div className="bg-red-50 p-4 rounded-lg border-2 border-red-300">
+                      <p className="text-red-900 font-medium">{selectedTask.errorMessage}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Metadata Section */}
                 {selectedTask.tags && selectedTask.tags.length > 0 && (
                   <div>
                     <label className="text-sm font-semibold text-gray-700">Tags</label>
@@ -157,6 +181,25 @@ export default function Home() {
                     <p className="text-gray-900">{new Date(selectedTask.updatedAt).toLocaleString()}</p>
                   </div>
                 </div>
+
+                {selectedTask.lastRunAt && (
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Last Run</label>
+                    <p className="text-gray-900">{new Date(selectedTask.lastRunAt).toLocaleString()}</p>
+                  </div>
+                )}
+
+                {/* Raw Response Toggle */}
+                {selectedTask.outputRaw && (
+                  <details className="border-t border-gray-200 pt-4">
+                    <summary className="cursor-pointer text-sm font-semibold text-gray-700 hover:text-gray-900">
+                      🔧 Show Raw Runner Response
+                    </summary>
+                    <pre className="bg-gray-50 p-4 rounded mt-2 overflow-x-auto text-xs text-gray-900 border border-gray-200 max-h-64 overflow-y-auto">
+                      {JSON.stringify(selectedTask.outputRaw, null, 2)}
+                    </pre>
+                  </details>
+                )}
 
                 <div>
                   <label className="text-sm font-semibold text-gray-700">Payload</label>

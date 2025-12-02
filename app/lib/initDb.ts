@@ -26,7 +26,10 @@ export async function initializeDatabase() {
         "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" DATETIME NOT NULL,
         "lastRunAt" DATETIME,
-        "runnerStatus" TEXT
+        "runnerStatus" TEXT,
+        "outputText" TEXT,
+        "outputRaw" TEXT,
+        "errorMessage" TEXT
       )
     `)
 
