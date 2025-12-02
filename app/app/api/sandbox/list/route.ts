@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     if (!runnerBase) {
       console.error('[API/sandbox/list] Runner not configured');
       return NextResponse.json(
-        { ok: false, error: 'Runner URL not configured. Set it in Settings.' },
+        { ok: false, error: 'Runner URL not configured. Set it in Settings.', entries: [] },
         { status: 500 }
       );
     }
