@@ -6,10 +6,11 @@ import CreateTaskForm from './components/CreateTaskForm';
 import RunTaskButton from './components/RunTaskButton';
 import EventList from './components/EventList';
 import DiagnosticsPanel from './components/DiagnosticsPanel';
+import SettingsPage from './settings/page';
 import { Task } from './lib/api';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'tasks' | 'create' | 'events' | 'diagnostics'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'create' | 'events' | 'diagnostics' | 'settings'>('tasks');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -22,6 +23,7 @@ export default function Home() {
     { id: 'create' as const, label: '➕ Create Task', icon: '➕' },
     { id: 'events' as const, label: '📊 Events', icon: '📊' },
     { id: 'diagnostics' as const, label: '🔧 Diagnostics', icon: '🔧' },
+    { id: 'settings' as const, label: '⚙️ Settings', icon: '⚙️' },
   ];
 
   return (
@@ -73,6 +75,10 @@ export default function Home() {
 
         {activeTab === 'diagnostics' && (
           <DiagnosticsPanel />
+        )}
+
+        {activeTab === 'settings' && (
+          <SettingsPage />
         )}
       </div>
 

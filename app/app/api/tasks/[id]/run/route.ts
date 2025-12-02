@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getTaskById, updateTask, createEvent } from '@/lib/db';
+import { getTaskById, updateTask, createEvent, getSettings } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,44 +17,48 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const taskId = params.id;
-  console.log(`[Runner] POST /api/tasks/${taskId}/run`);
+  console.log(`[API/run-task] POST /api/tasks/${taskId}/run`);
 
   try {
     // Load task
     const task = await getTaskById(taskId);
 
     if (!task) {
-      console.log(`[Runner] Task not found: ${taskId}`);
+      console.log(`[API/run-task] Task not found: ${taskId}`);
       return NextResponse.json(
         { ok: false, error: 'Task not found' },
         { status: 404 }
       );
     }
 
-    console.log(`[Runner] Found task: "${task.title}" (status: ${task.status})`);
+    console.log(`[API/run-task] Found task: "${task.title}" (status: ${task.status})`);
 
-    // Check for RUNNER_BASE_URL
-    const runnerBaseUrl = process.env.RUNNER_BASE_URL;
+    // Load settings and determine runner URL
+    const settings = await getSettings();
+    const runnerBase = settings.runnerUrl || process.env.RUNNER_BASE_URL;
 
-    if (!runnerBaseUrl) {
-      console.error('[Runner] ⚠️  RUNNER_BASE_URL is not configured!');
-      console.error('[Runner] Set RUNNER_BASE_URL environment variable to enable remote execution');
+    if (!runnerBase) {
+      console.error('[API/run-task] ⚠️  Runner is not configured!');
+      console.error('[API/run-task] Set runner URL in Settings or RUNNER_BASE_URL environment variable');
       return NextResponse.json(
         {
           ok: false,
-          error: 'Runner is not configured. Set RUNNER_BASE_URL environment variable.'
+          error: 'Runner is not configured. Set runner URL in Settings.'
         },
         { status: 500 }
       );
     }
 
-    console.log(`[Runner] Using RUNNER_BASE_URL: ${runnerBaseUrl}`);
+    console.log(`[API/run-task] Using runner URL: ${runnerBase}`);
+
+    // Determine runner token
+    const runnerToken = settings.runnerToken || process.env.RUNNER_TOKEN || null;
 
     // Build payload for remote runner
     const runnerPayload = {
       taskId: task.id,
       title: task.title,
-      description: task.description,
+      description: task.description || '',
       type: task.type,
       payload: task.payload,
       createdAt: task.createdAt,
@@ -64,7 +68,7 @@ export async function POST(
       }
     };
 
-    console.log('[Runner] Calling remote runner with payload:', JSON.stringify(runnerPayload, null, 2));
+    console.log('[API/run-task] Calling runner with payload:', JSON.stringify(runnerPayload, null, 2));
 
     // Update task status to 'running'
     await updateTask(task.id, {
@@ -77,42 +81,97 @@ export async function POST(
     await createEvent({
       taskId: task.id,
       eventType: 'task_run_started',
-      data: { runnerUrl: runnerBaseUrl }
+      data: { runnerUrl: runnerBase }
     });
 
     // Call remote runner
-    let runnerResponse;
     try {
-      const runnerUrl = `${runnerBaseUrl}/run-task`;
-      console.log(`[Runner] Fetching: ${runnerUrl}`);
+      const runnerUrl = `${runnerBase}/run-task`;
+      console.log(`[API/run-task] Calling runner at ${runnerUrl}`);
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (runnerToken) {
+        headers['x-runner-token'] = runnerToken;
+        console.log('[API/run-task] Including runner token in request');
+      }
 
       const response = await fetch(runnerUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(runnerPayload),
-        signal: AbortSignal.timeout(30000), // 30 second timeout
+        signal: AbortSignal.timeout(60000), // 60 second timeout
       });
 
-      console.log(`[Runner] Response status: ${response.status}`);
+      console.log(`[API/run-task] Runner response status: ${response.status}`);
 
-      if (!response.ok) {
-        const text = await response.text();
-        console.error(`[Runner] Remote runner returned error: ${response.status}`);
-        console.error(`[Runner] Response body: ${text}`);
-        throw new Error(`Runner returned ${response.status}: ${text}`);
+      // Read raw text first
+      const text = await response.text();
+
+      // Try to parse JSON
+      let runnerJson;
+      try {
+        runnerJson = JSON.parse(text);
+      } catch (parseError) {
+        console.error(`[API/run-task] Runner returned non-JSON: ${text.slice(0, 500)}`);
+
+        // Update task to failed
+        await updateTask(task.id, {
+          ...task,
+          status: 'failed',
+          runnerStatus: 'error: runner returned invalid JSON',
+        });
+
+        await createEvent({
+          taskId: task.id,
+          eventType: 'task_run_failed',
+          data: { error: 'Runner returned invalid JSON' }
+        });
+
+        return NextResponse.json({
+          ok: false,
+          error: 'Runner returned invalid JSON'
+        }, { status: 502 });
       }
 
-      runnerResponse = await response.json();
-      console.log('[Runner] Runner response:', JSON.stringify(runnerResponse, null, 2));
+      // Check if runner reported an error
+      if (!response.ok || runnerJson.ok === false) {
+        const errorMsg = runnerJson.error || `Runner failed with status ${response.status}`;
+        console.error(`[API/run-task] Runner error:`, errorMsg);
+        console.error(`[API/run-task] Runner response:`, runnerJson);
 
-      // Update task with runner response
+        // Update task to failed
+        const failedTask = await updateTask(task.id, {
+          ...task,
+          status: 'failed',
+          runnerStatus: `error: ${errorMsg}`,
+        });
+
+        await createEvent({
+          taskId: task.id,
+          eventType: 'task_run_failed',
+          data: { error: errorMsg, runnerResponse: runnerJson }
+        });
+
+        return NextResponse.json({
+          ok: false,
+          error: errorMsg,
+          data: { task: failedTask, runner: runnerJson }
+        }, { status: 502 });
+      }
+
+      // Success - update task with runner response
+      const finalStatus = runnerJson.status || 'completed';
       const finalTask = await updateTask(task.id, {
         ...task,
-        runnerStatus: runnerResponse.status || 'completed',
-        status: runnerResponse.error ? 'failed' : (runnerResponse.status === 'failed' ? 'failed' : 'completed'),
+        lastRunAt: runnerJson.finishedAt ? new Date(runnerJson.finishedAt) : new Date(),
+        runnerStatus: finalStatus,
+        status: finalStatus,
       });
+
+      console.log(`[API/run-task] Runner success for task ${taskId}, status=${finalStatus}`);
 
       // Add success event
       await createEvent({
@@ -128,12 +187,12 @@ export async function POST(
         ok: true,
         data: {
           task: finalTask,
-          runnerResponse
+          runner: runnerJson
         }
       });
 
     } catch (runnerError: any) {
-      console.error('[Runner] Error calling remote runner:', runnerError.message);
+      console.error('[API/run-task] Error calling remote runner:', runnerError.message);
       console.error(runnerError.stack);
 
       // Update task to failed
@@ -158,7 +217,7 @@ export async function POST(
     }
 
   } catch (error: any) {
-    console.error(`[Runner] Unexpected error for ${taskId}:`, error.message);
+    console.error(`[API/run-task] Unexpected error for ${taskId}:`, error.message);
     console.error(error.stack);
     return NextResponse.json(
       { ok: false, error: 'Internal server error' },

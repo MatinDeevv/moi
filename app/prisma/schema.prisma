@@ -43,3 +43,10 @@ model Event {
   @@index([timestamp])
 }
 
+model Settings {
+  id          Int      @id @default(1)
+  runnerUrl   String?
+  runnerToken String?
+  updatedAt   DateTime @updatedAt
+}
+

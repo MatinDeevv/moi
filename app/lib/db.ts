@@ -271,3 +271,73 @@ export async function getDatabaseHealth() {
   }
 }
 
+/**
+ * Settings Operations
+ */
+
+export interface Settings {
+  id: number
+  runnerUrl: string | null
+  runnerToken: string | null
+  updatedAt: Date
+}
+
+export async function getSettings(): Promise<Settings> {
+  await initializeDatabase()
+  console.log('[DB] getSettings')
+
+  let settings = await prisma.settings.findUnique({
+    where: { id: 1 },
+  })
+
+  if (!settings) {
+    console.log('[DB] No settings found, creating default row')
+    settings = await prisma.settings.create({
+      data: {
+        id: 1,
+        runnerUrl: null,
+        runnerToken: null,
+      },
+    })
+  }
+
+  console.log(`[DB] Settings loaded: runnerUrl=${settings.runnerUrl ? '***set***' : 'null'}, runnerToken=${settings.runnerToken ? '***set***' : 'null'}`)
+
+  return settings
+}
+
+export async function updateSettings(partial: {
+  runnerUrl?: string | null
+  runnerToken?: string | null
+}): Promise<Settings> {
+  await initializeDatabase()
+  console.log('[DB] updateSettings:', {
+    runnerUrl: partial.runnerUrl !== undefined ? (partial.runnerUrl || 'null') : 'unchanged',
+    runnerToken: partial.runnerToken !== undefined ? (partial.runnerToken ? '***' : 'null') : 'unchanged',
+  })
+
+  const updateData: any = {}
+
+  if (partial.runnerUrl !== undefined) {
+    updateData.runnerUrl = partial.runnerUrl
+  }
+
+  if (partial.runnerToken !== undefined) {
+    updateData.runnerToken = partial.runnerToken
+  }
+
+  const settings = await prisma.settings.upsert({
+    where: { id: 1 },
+    update: updateData,
+    create: {
+      id: 1,
+      runnerUrl: partial.runnerUrl ?? null,
+      runnerToken: partial.runnerToken ?? null,
+    },
+  })
+
+  console.log(`[DB] Settings updated: runnerUrl=${settings.runnerUrl ? '***set***' : 'null'}, runnerToken=${settings.runnerToken ? '***set***' : 'null'}`)
+
+  return settings
+}
+
