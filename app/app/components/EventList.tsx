@@ -51,7 +51,7 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
     if (eventType.includes('started') || eventType.includes('running')) {
       return 'text-blue-800 bg-blue-50 border border-blue-300';
     }
-    return 'text-gray-800 bg-gray-50 border border-gray-300';
+    return 'text-gray-300 bg-gray-800 border border-gray-700';
   };
 
   if (loading && events.length === 0) {
@@ -89,7 +89,7 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-900 p-4 rounded-lg border border-gray-800">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Task ID (partial)
@@ -98,32 +98,32 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
             type="text"
             value={filter.task_id}
             onChange={(e) => setFilter({ ...filter, task_id: e.target.value })}
-            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="e.g., abc123..."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Event Type
           </label>
           <input
             type="text"
             value={filter.event_type}
             onChange={(e) => setFilter({ ...filter, event_type: e.target.value })}
-            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="e.g., task_started"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Limit
           </label>
           <select
             value={filter.limit}
             onChange={(e) => setFilter({ ...filter, limit: Number(e.target.value) })}
-            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           >
             <option value="50">50</option>
             <option value="100">100</option>
@@ -148,7 +148,7 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
           {events.map((event, index) => (
             <div
               key={index}
-              className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="bg-[#0f172a] border border-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow">
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -173,7 +173,7 @@ export default function EventList({ refreshTrigger = 0 }: EventListProps) {
                       <summary className="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600">
                         View Data
                       </summary>
-                      <pre className="mt-2 bg-gray-50 p-3 rounded text-xs overflow-x-auto text-gray-900 border border-gray-200">
+                      <pre className="mt-2 bg-gray-900 p-3 rounded text-xs overflow-x-auto text-gray-300 border border-gray-800">
                         {JSON.stringify(event.data, null, 2)}
                       </pre>
                     </details>

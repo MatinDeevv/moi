@@ -158,16 +158,16 @@ export default function RunTaskButton({ onTaskRun }: RunTaskButtonProps) {
           )}
 
           {result.error && (
-            <div className="bg-white bg-opacity-50 rounded p-3">
-              <p className="text-sm font-medium text-red-800 mb-1">Error:</p>
-              <pre className="text-sm text-red-700 whitespace-pre-wrap">{result.error}</pre>
+            <div className="bg-gray-900 rounded p-3 border border-gray-800">
+              <p className="text-sm font-medium text-red-400 mb-1">Error:</p>
+              <pre className="text-sm text-red-300 whitespace-pre-wrap">{result.error}</pre>
             </div>
           )}
 
           {result.result && (
-            <div className="bg-white bg-opacity-50 rounded p-3">
-              <p className="text-sm font-medium text-green-800 mb-2">Result:</p>
-              <pre className="text-xs text-gray-800 overflow-x-auto">
+            <div className="bg-gray-900 rounded p-3 border border-gray-800">
+              <p className="text-sm font-medium text-green-400 mb-2">Result:</p>
+              <pre className="text-xs text-gray-300 overflow-x-auto">
                 {JSON.stringify(result.result, null, 2)}
               </pre>
             </div>

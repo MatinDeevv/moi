@@ -56,12 +56,12 @@ export default function DiagnosticsPanel() {
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 border border-gray-200 space-y-4">
+    <div className="bg-[#0f172a] rounded-lg p-6 border border-gray-800 space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold text-gray-900">🔧 System Diagnostics</h3>
+        <h3 className="text-xl font-bold text-gray-100">🔧 System Diagnostics</h3>
         <button
           onClick={runDiagnostics}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
         >
           🔄 Re-run Tests
         </button>
@@ -69,18 +69,18 @@ export default function DiagnosticsPanel() {
 
       <div className="space-y-3">
         {/* Health Check */}
-        <div className="bg-gray-50 p-4 rounded border border-gray-200">
+        <div className="bg-gray-900 p-4 rounded border border-gray-800">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-medium text-gray-900">Health Endpoint</p>
-              <p className="text-sm text-gray-600 mt-1">GET /api/health</p>
+              <p className="font-medium text-gray-100">Health Endpoint</p>
+              <p className="text-sm text-gray-400 mt-1">GET /api/health</p>
             </div>
             <StatusIndicator status={health ? 'success' : 'loading'} />
           </div>
           {health && (
             <details className="mt-3">
-              <summary className="text-sm text-blue-600 cursor-pointer">View Response</summary>
-              <pre className="mt-2 bg-white p-3 rounded text-xs overflow-x-auto text-gray-900 border border-gray-200">
+              <summary className="text-sm text-indigo-400 cursor-pointer">View Response</summary>
+              <pre className="mt-2 bg-[#020617] p-3 rounded text-xs overflow-x-auto text-gray-300 border border-gray-800">
                 {JSON.stringify(health, null, 2)}
               </pre>
             </details>
@@ -88,11 +88,11 @@ export default function DiagnosticsPanel() {
         </div>
 
         {/* Tasks API */}
-        <div className="bg-gray-50 p-4 rounded border border-gray-200">
+        <div className="bg-gray-900 p-4 rounded border border-gray-800">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-medium text-gray-900">Tasks API</p>
-              <p className="text-sm text-gray-600 mt-1">GET /api/tasks</p>
+              <p className="font-medium text-gray-100">Tasks API</p>
+              <p className="text-sm text-gray-400 mt-1">GET /api/tasks</p>
             </div>
             <StatusIndicator status={tasksStatus} />
           </div>
@@ -102,11 +102,11 @@ export default function DiagnosticsPanel() {
         </div>
 
         {/* Events API */}
-        <div className="bg-gray-50 p-4 rounded border border-gray-200">
+        <div className="bg-gray-900 p-4 rounded border border-gray-800">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-medium text-gray-900">Events API</p>
-              <p className="text-sm text-gray-600 mt-1">GET /api/events</p>
+              <p className="font-medium text-gray-100">Events API</p>
+              <p className="text-sm text-gray-400 mt-1">GET /api/events</p>
             </div>
             <StatusIndicator status={eventsStatus} />
           </div>
@@ -117,11 +117,11 @@ export default function DiagnosticsPanel() {
 
         {/* Runner Configuration */}
         {health && (
-          <div className="bg-gray-50 p-4 rounded border border-gray-200">
+          <div className="bg-gray-900 p-4 rounded border border-gray-800">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium text-gray-900">Remote Runner</p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="font-medium text-gray-100">Remote Runner</p>
+                <p className="text-sm text-gray-400 mt-1">
                   {health.runner?.configured ? (
                     <>Configured: {health.runner?.baseUrl}</>
                   ) : (
@@ -140,11 +140,11 @@ export default function DiagnosticsPanel() {
 
         {/* Database Status */}
         {health?.database && (
-          <div className="bg-gray-50 p-4 rounded border border-gray-200">
+          <div className="bg-gray-900 p-4 rounded border border-gray-800">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium text-gray-900">MartinDB</p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="font-medium text-gray-100">MartinDB</p>
+                <p className="text-sm text-gray-400 mt-1">
                   Tasks: {health.database.tasksCount} | Events: {health.database.eventsCount}
                 </p>
               </div>
@@ -161,7 +161,7 @@ export default function DiagnosticsPanel() {
         )}
       </div>
 
-      <div className="pt-4 border-t border-gray-200">
+      <div className="pt-4 border-t border-gray-800">
         <p className="text-xs text-gray-500">
           Check browser console (F12) for detailed logs from all API calls
         </p>
@@ -169,4 +169,3 @@ export default function DiagnosticsPanel() {
     </div>
   );
 }
-

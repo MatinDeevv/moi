@@ -172,7 +172,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 space-y-6">
+      <div className="bg-[#0f172a] border border-gray-800 rounded-lg shadow-md p-6 space-y-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Runner Configuration</h2>
 

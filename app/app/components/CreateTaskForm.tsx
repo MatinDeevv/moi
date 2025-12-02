@@ -220,7 +220,7 @@ export default function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               setError(null);
               setSuccess(false);
             }}
-            className="px-6 py-3 rounded-lg font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="px-6 py-3 rounded-lg font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 transition-colors"
           >
             Reset
           </button>
