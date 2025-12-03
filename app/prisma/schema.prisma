@@ -167,9 +167,9 @@ model SandboxFile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, path])
   @@index([userId])
   @@index([path])
+  @@index([userId, path]) // Combined index for lookups
   @@index([isDeleted])
 }
 
