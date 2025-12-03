@@ -514,7 +514,7 @@ export async function saveSandboxFile(data: {
   const file = await prisma.sandboxFile.upsert({
     where: {
       userId_path: {
-        userId: data.userId || null,
+        userId: data.userId ?? undefined,
         path: data.path,
       },
     },
@@ -542,7 +542,7 @@ export async function getSandboxFile(userId: string | undefined, path: string) {
   return await prisma.sandboxFile.findUnique({
     where: {
       userId_path: {
-        userId: userId || null,
+        userId: userId ?? undefined,
         path,
       },
     },
@@ -565,7 +565,7 @@ export async function deleteSandboxFile(userId: string | undefined, path: string
   await prisma.sandboxFile.update({
     where: {
       userId_path: {
-        userId: userId || null,
+        userId: userId ?? undefined,
         path,
       },
     },
