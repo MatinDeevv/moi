@@ -6,18 +6,56 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// User model - for multi-user support
+model User {
+  id            String   @id @default(uuid())
+  email         String?  @unique
+  name          String?
+  username      String?  @unique
+  passwordHash  String?  // Optional: for local auth
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLoginAt   DateTime?
+
+  // Relations
+  tasks         Task[]
+  events        Event[]
+  settings      Settings[]
+  sessions      Session[]
+
+  @@index([email])
+  @@index([username])
+}
+
+// Session model - for authentication
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// Task model - enhanced with user ownership
 model Task {
   id            String   @id @default(uuid())
+  userId        String?  // Optional: tasks can be user-specific or global
   title         String
   description   String?
   status        String   @default("pending") // pending, running, completed, failed
-  type          String?  @default("general")
-  payload       String?  // JSON string
-  tags          String?  // JSON array as string
+  type          String   @default("general")
+  payload       Json?    // Use native JSON type for PostgreSQL
+  tags          String[] // Use native array type for PostgreSQL
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   lastRunAt     DateTime?
@@ -25,33 +63,129 @@ model Task {
 
   // LLM Output fields
   outputText    String?  // Main human-readable LLM output
-  outputRaw     String?  // Raw JSON response from runner (stored as JSON string)
+  outputRaw     Json?    // Raw JSON response from runner
   errorMessage  String?  // Error message if runner failed
 
+  // Metadata
+  priority      Int      @default(0) // Higher = more important
+  isPublic      Boolean  @default(false) // Can other users see this?
+  executionTime Int?     // Execution time in milliseconds
+
+  // Relations
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   events        Event[]
 
+  @@index([userId])
   @@index([status])
+  @@index([type])
   @@index([createdAt])
+  @@index([isPublic])
 }
 
+// Event model - enhanced with user tracking
 model Event {
   id        String   @id @default(uuid())
+  userId    String?  // Who triggered this event
   taskId    String?
   eventType String
   timestamp DateTime @default(now())
-  data      String?  // JSON string
+  data      Json?    // Use native JSON type
+  level     String   @default("info") // info, warn, error, debug
 
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@index([taskId])
   @@index([eventType])
   @@index([timestamp])
+  @@index([level])
 }
 
+// Settings model - per-user settings
 model Settings {
-  id          Int      @id @default(1)
+  id          String   @id @default(uuid())
+  userId      String?  // Optional: global settings if null
   runnerUrl   String?
   runnerToken String?
+  preferences Json?    // Flexible JSON for UI preferences, theme, etc.
   updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId]) // One settings record per user
+  @@index([userId])
+}
+
+// LLM Session model - for conversational tasks
+model LLMSession {
+  id          String   @id @default(uuid())
+  userId      String?
+  sessionId   String   @unique // Custom session identifier
+  title       String?
+  systemPrompt String?
+  summary     String?  // Rolling summary of conversation
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastUsedAt  DateTime @default(now())
+
+  messages    LLMMessage[]
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([lastUsedAt])
+}
+
+// LLM Message model - individual messages in a session
+model LLMMessage {
+  id        String     @id @default(uuid())
+  sessionId String
+  role      String     // system, user, assistant
+  content   String
+  timestamp DateTime   @default(now())
+  metadata  Json?      // Token count, model used, etc.
+
+  session   LLMSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([timestamp])
+}
+
+// Sandbox File model - track files in sandbox
+model SandboxFile {
+  id        String   @id @default(uuid())
+  userId    String?
+  path      String   // Relative path in sandbox
+  content   String?  // File content
+  size      Int?     // File size in bytes
+  mimeType  String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, path])
+  @@index([userId])
+  @@index([path])
+  @@index([isDeleted])
+}
+
+// Audit Log model - track all important actions
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String   // create_task, run_task, delete_file, etc.
+  resource  String?  // task:123, file:sandbox/test.txt
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
 }
 

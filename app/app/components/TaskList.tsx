@@ -150,44 +150,44 @@ export default function TaskList({ refreshTrigger = 0, onTaskSelect }: TaskListP
 
       {/* Tasks table */}
       {tasks.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-400">
           No tasks found. Create one to get started!
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-800">
             <thead className="bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Created
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-[#0f172a] divide-y divide-gray-800">
-ta base schem to be the same across deployments               {tasks.map((task) => (
+              {tasks.map((task) => (
                 <tr key={task.id} className="hover:bg-gray-900">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="font-mono text-xs text-gray-600">
+                    <span className="font-mono text-xs text-gray-400">
                       {task.id.substring(0, 8)}...
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-gray-200">
                       {task.title || <span className="text-gray-500 italic">No title</span>}
                     </div>
                     {task.tags && task.tags.length > 0 && (
@@ -198,26 +198,26 @@ ta base schem to be the same across deployments               {tasks.map((task) 
                           </span>
                         ))}
                         {task.tags.length > 3 && (
-                          <span className="text-xs text-gray-600">+{task.tags.length - 3}</span>
+                          <span className="text-xs text-gray-500">+{task.tags.length - 3}</span>
                         )}
                       </div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-700">{task.type}</span>
+                    <span className="text-sm text-gray-300">{task.type}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(task.status)}`}>
                       {task.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     {new Date(task.createdAt).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button
                       onClick={() => onTaskSelect?.(task)}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-indigo-400 hover:text-indigo-300 font-medium"
                     >
                       View Details
                     </button>
@@ -231,4 +231,3 @@ ta base schem to be the same across deployments               {tasks.map((task) 
     </div>
   );
 }
-
