@@ -236,8 +236,9 @@ export default function SandboxPage() {
             onClick={createNewFile}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
           >
-          ➕ New File
-        </button>
+            ➕ New File
+          </button>
+        </div>
       </div>
 
       {/* Error/Success Messages */}
