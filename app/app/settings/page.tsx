@@ -178,7 +178,7 @@ export default function SettingsPage() {
 
           {/* Runner URL */}
           <div className="space-y-2">
-            <label htmlFor="runnerUrl" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="runnerUrl" className="block text-sm font-medium text-gray-300">
               Runner URL
             </label>
             <input
@@ -187,16 +187,16 @@ export default function SettingsPage() {
               value={formData.runnerUrl}
               onChange={(e) => setFormData({ ...formData, runnerUrl: e.target.value })}
               placeholder="https://your-ngrok-url.ngrok.io"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               The base URL of your Project ME runner (e.g., ngrok URL). Must start with http:// or https://
             </p>
           </div>
 
           {/* Runner Token */}
           <div className="space-y-2 mt-4">
-            <label htmlFor="runnerToken" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="runnerToken" className="block text-sm font-medium text-gray-300">
               Runner Token (Optional)
             </label>
             <input
@@ -205,9 +205,9 @@ export default function SettingsPage() {
               value={formData.runnerToken}
               onChange={(e) => setFormData({ ...formData, runnerToken: e.target.value })}
               placeholder={settings?.runnerToken ? 'Token is set (leave empty to keep)' : 'Enter token if required'}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               {settings?.runnerToken
                 ? '✅ Token is currently set. Leave empty to keep existing token, or enter a new one to update.'
                 : 'Authentication token for the runner (if required)'}
@@ -216,7 +216,7 @@ export default function SettingsPage() {
 
           {/* Last Updated */}
           {settings?.updatedAt && (
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-4 text-sm text-gray-400">
               Last updated: {new Date(settings.updatedAt).toLocaleString()}
             </div>
           )}

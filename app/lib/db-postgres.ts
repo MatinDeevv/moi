@@ -337,7 +337,7 @@ export async function getSettings(userId?: string) {
   console.log('[DB] Getting settings for user:', userId || 'global')
 
   let settings = await prisma.settings.findUnique({
-    where: { userId: userId || null },
+    where: { userId: userId ?? undefined },
   })
 
   // Create default settings if not exists
@@ -366,7 +366,7 @@ export async function updateSettings(
   console.log('[DB] Updating settings for user:', userId || 'global')
 
   const settings = await prisma.settings.upsert({
-    where: { userId: userId || null },
+    where: { userId: userId ?? undefined },
     update: {
       runnerUrl: data.runnerUrl,
       runnerToken: data.runnerToken,
