@@ -16,10 +16,25 @@ export default function SandboxPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   useEffect(() => {
     loadDirectory(currentPath);
   }, [currentPath]);
+
+  // Auto-refresh every 5 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      console.log('[Sandbox] Auto-refreshing directory...');
+      loadDirectory(currentPath);
+      setLastRefresh(new Date());
+    }, 5000); // 5 seconds
+
+    return () => clearInterval(interval);
+  }, [currentPath, autoRefresh]);
 
   const loadDirectory = async (path: string) => {
     try {
@@ -194,11 +209,33 @@ export default function SandboxPage() {
         <div>
           <h1 className="text-3xl font-bold text-slate-100">📁 Sandbox</h1>
           <p className="text-slate-400 mt-1">Browse and edit files on your runner machine</p>
+          <p className="text-xs text-slate-500 mt-1">
+            Last refresh: {lastRefresh.toLocaleTimeString()}
+            {autoRefresh && <span className="text-green-400 ml-2">● Auto-refreshing</span>}
+          </p>
         </div>
-        <button
-          onClick={createNewFile}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
+        <div className="flex gap-2">
+          <button
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`px-4 py-2 rounded-lg transition-colors font-medium ${
+              autoRefresh
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            {autoRefresh ? '● Auto-Refresh ON' : '○ Auto-Refresh OFF'}
+          </button>
+          <button
+            onClick={() => loadDirectory(currentPath)}
+            disabled={loading}
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium disabled:opacity-50"
+          >
+            🔄 Refresh Now
+          </button>
+          <button
+            onClick={createNewFile}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+          >
           ➕ New File
         </button>
       </div>
