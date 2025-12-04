@@ -82,7 +82,7 @@ export async function PUT(request: NextRequest) {
       updateData.runnerToken = body.runnerToken === '' ? null : body.runnerToken;
     }
 
-    const settings = await updateSettings(updateData);
+    const settings = await updateSettings(undefined, updateData);
 
     console.log('[API/settings/runner] Settings updated successfully');
 
