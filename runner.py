@@ -626,9 +626,14 @@ def analyze_code(req: CodeAnalysisRequest) -> CodeAnalysisResponse:
     3. Sends to LLM with your prompt
     4. Returns the analysis
     """
+    # Maximum characters per file and total to avoid LLM context overflow
+    MAX_FILE_SIZE = 8000  # ~8KB per file
+    MAX_TOTAL_SIZE = 24000  # ~24KB total context
+
     try:
         files_content = []
         files_analyzed = []
+        total_size = 0
 
         for file_path_str in req.files:
             try:
@@ -652,13 +657,37 @@ def analyze_code(req: CodeAnalysisRequest) -> CodeAnalysisResponse:
                 except UnicodeDecodeError:
                     content = file_path.read_text(encoding="latin-1")
 
+                original_size = len(content)
+                truncated = False
+
+                # Truncate large files
+                if len(content) > MAX_FILE_SIZE:
+                    content = content[:MAX_FILE_SIZE] + f"\n\n... [TRUNCATED - file is {original_size} bytes, showing first {MAX_FILE_SIZE}] ..."
+                    truncated = True
+                    logger.info("[Analyze] Truncated file: %s (%d -> %d bytes)", file_path.name, original_size, MAX_FILE_SIZE)
+
+                # Check total size limit
+                if total_size + len(content) > MAX_TOTAL_SIZE:
+                    remaining = MAX_TOTAL_SIZE - total_size
+                    if remaining > 1000:
+                        content = content[:remaining] + f"\n\n... [TRUNCATED due to total size limit] ..."
+                        truncated = True
+                    else:
+                        logger.warning("[Analyze] Skipping file %s - total size limit reached", file_path.name)
+                        continue
+
                 if req.include_content:
-                    files_content.append(f"=== File: {file_path.name} ===\n```\n{content}\n```\n")
+                    file_header = f"=== File: {file_path.name}"
+                    if truncated:
+                        file_header += f" (TRUNCATED from {original_size} bytes)"
+                    file_header += " ===\n"
+                    files_content.append(f"{file_header}```\n{content}\n```\n")
                 else:
                     files_content.append(f"=== File: {file_path.name} (path: {file_path}) ===\n")
 
+                total_size += len(content)
                 files_analyzed.append(str(file_path))
-                logger.info("[Analyze] Loaded file: %s (%d bytes)", file_path.name, len(content))
+                logger.info("[Analyze] Loaded file: %s (%d bytes%s)", file_path.name, len(content), ", truncated" if truncated else "")
 
             except Exception as e:
                 logger.warning("[Analyze] Error reading %s: %s", file_path_str, e)
@@ -672,13 +701,13 @@ def analyze_code(req: CodeAnalysisRequest) -> CodeAnalysisResponse:
 
         # Build LLM prompt
         files_context = "\n".join(files_content)
-        full_prompt = f"""You are a code analysis expert. Analyze the following files and respond to the user's request.
+        full_prompt = f"""Analyze the following code files and respond to the user's request.
 
 {files_context}
 
 User Request: {req.prompt}
 
-Provide a detailed, helpful response."""
+Provide a clear, helpful response."""
 
         lm_payload = {
             "model": LM_MODEL,
@@ -695,7 +724,7 @@ Provide a detailed, helpful response."""
             "temperature": 0.3,  # Lower temperature for more focused analysis
         }
 
-        logger.info("[Analyze] Sending %d files to LLM", len(files_analyzed))
+        logger.info("[Analyze] Sending %d files to LLM (total context: %d chars)", len(files_analyzed), total_size)
 
         try:
             lm_res = requests.post(LM_ENDPOINT, json=lm_payload, timeout=120)
@@ -712,11 +741,29 @@ Provide a detailed, helpful response."""
                 raw=lm_json
             )
 
+        except requests.HTTPError as exc:
+            status_code = exc.response.status_code if exc.response else 0
+            error_text = exc.response.text[:500] if exc.response else str(exc)
+            logger.error("[Analyze] LM Studio HTTP error %d: %s", status_code, error_text)
+
+            if status_code == 400:
+                return CodeAnalysisResponse(
+                    ok=False,
+                    error=f"LLM rejected the request (likely context too large). Try selecting smaller files or fewer files. Context was {total_size} chars.",
+                    files_analyzed=files_analyzed
+                )
+
+            return CodeAnalysisResponse(
+                ok=False,
+                error=f"LLM error (HTTP {status_code}): {error_text[:200]}",
+                files_analyzed=files_analyzed
+            )
+
         except requests.RequestException as exc:
             logger.exception("[Analyze] LM Studio error")
             return CodeAnalysisResponse(
                 ok=False,
-                error=f"LLM error: {exc}",
+                error=f"LLM connection error: {exc}",
                 files_analyzed=files_analyzed
             )
 
