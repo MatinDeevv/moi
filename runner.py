@@ -156,6 +156,8 @@ class RunTaskRequest(BaseModel):
     taskId: str = Field(..., alias="task_id")
     title: str
     description: Optional[str] = None
+    type: Optional[str] = None
+    payload: Optional[Dict[str, Any]] = None
     metadata: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(populate_by_name=True)
@@ -260,22 +262,41 @@ def get_ngrok_status() -> Dict[str, Any]:
 
 @app.post("/run-task", response_model=RunnerResponse)
 def run_task(req: RunTaskRequest) -> RunnerResponse:
-    logger.info("[Runner] Received task %s - %s", req.taskId, req.title)
+    logger.info("[Runner] Received task %s - %s (type: %s)", req.taskId, req.title, req.type)
+
+    # Extract the actual prompt from payload
+    payload = req.payload or {}
+
+    # Get user prompt - check various payload formats
+    user_prompt = (
+        payload.get("prompt") or
+        payload.get("message") or
+        payload.get("question") or
+        payload.get("command") or
+        req.description or
+        req.title  # Fallback to title only if nothing else
+    )
+
+    # Get system prompt from payload, or use default
+    system_prompt = (
+        payload.get("system_prompt") or
+        payload.get("system") or
+        "You are a helpful assistant."
+    )
+
+    logger.info("[Runner] Using prompt: %s", user_prompt[:100] if user_prompt else "None")
+    logger.info("[Runner] System prompt: %s", system_prompt[:100] if system_prompt else "Default")
 
     lm_payload = {
         "model": LM_MODEL,
         "messages": [
             {
                 "role": "system",
-                "content": "You are the Project ME agent. You run tasks for Matin.",
+                "content": system_prompt,
             },
             {
                 "role": "user",
-                "content": (
-                    f"Task: {req.title}\n\n"
-                    f"Description: {req.description or ''}\n\n"
-                    f"Metadata: {req.metadata or {}}"
-                ),
+                "content": user_prompt,
             },
         ],
     }
