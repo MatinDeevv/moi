@@ -40,3 +40,4 @@ Thumbs.db
 /lib/generated/prisma
 prisma/*.db
 prisma/*.db-journal
+generated-prisma-client/

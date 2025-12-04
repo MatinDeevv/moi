@@ -1,19 +1,15 @@
 /**
- * Prisma Client Singleton
- * Prevents multiple instances of Prisma Client in development
+ * Prisma Client with Accelerate Extension
+ * Uses Prisma Accelerate for cloud database connections
  */
 
-import { PrismaClient } from '@prisma/client'
-
-// Fallback DATABASE_URL for Vercel serverless environment
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'file:/tmp/dev.db'
-}
+import { PrismaClient } from '../generated-prisma-client'
+import { withAccelerate } from '@prisma/extension-accelerate'
 
 const prismaClientSingleton = () => {
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  })
+  }).$extends(withAccelerate())
 }
 
 declare const globalThis: {

@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate --no-engine && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --no-engine"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@prisma/extension-accelerate": "^3.0.1",
     "next": "^14.0.4",
     "prisma": "^5.22.0",
     "react": "^18.2.0",
