@@ -727,7 +727,8 @@ Provide a clear, helpful response."""
         logger.info("[Analyze] Sending %d files to LLM (total context: %d chars)", len(files_analyzed), total_size)
 
         try:
-            lm_res = requests.post(LM_ENDPOINT, json=lm_payload, timeout=120)
+            # Use longer timeout for code analysis (5 minutes)
+            lm_res = requests.post(LM_ENDPOINT, json=lm_payload, timeout=300)
             lm_res.raise_for_status()
             lm_json = lm_res.json()
 
@@ -739,6 +740,14 @@ Provide a clear, helpful response."""
                 analysis=analysis,
                 files_analyzed=files_analyzed,
                 raw=lm_json
+            )
+
+        except requests.exceptions.ReadTimeout:
+            logger.error("[Analyze] LM Studio timeout after 5 minutes")
+            return CodeAnalysisResponse(
+                ok=False,
+                error="LLM timed out after 5 minutes. The context might be too large for the model to process quickly. Try a smaller file or simpler prompt.",
+                files_analyzed=files_analyzed
             )
 
         except requests.HTTPError as exc:
@@ -804,20 +813,29 @@ if __name__ == "__main__":
     print(f"   /sandbox/*    - Sandbox file operations")
     print(f"{'='*60}\n")
 
-    # Start ngrok if enabled
+    # Start ngrok in background thread after a short delay
+    # This ensures uvicorn binds to the port first
+    def delayed_ngrok_start():
+        time.sleep(2)  # Wait for uvicorn to bind
+        if auto_ngrok:
+            tunnel_url = start_ngrok(port)
+            if tunnel_url:
+                print(f"\n[OK] ngrok tunnel ready!")
+                print(f"   Use this URL in your Vercel Settings: {tunnel_url}")
+                print(f"{'='*60}\n")
+            else:
+                print("\n[WARN] ngrok failed to start. Runner will still work locally.")
+                print("   You can manually run: ngrok http 4000")
+
     if auto_ngrok:
-        tunnel_url = start_ngrok(port)
-        if tunnel_url:
-            print(f"[OK] ngrok tunnel ready!")
-            print(f"   Use this URL in your Vercel Settings: {tunnel_url}")
-        else:
-            print("[WARN] ngrok failed to start. Runner will still work locally.")
-            print("   You can manually run: ngrok http 4000")
+        ngrok_thread = threading.Thread(target=delayed_ngrok_start, daemon=True)
+        ngrok_thread.start()
+        print("[INFO] Starting ngrok tunnel in background...")
     else:
         print("[INFO] Auto-ngrok disabled. Set AUTO_NGROK=true to enable.")
 
     print(f"\n{'='*60}\n")
 
-    # Run the server
+    # Run the server (blocks until shutdown)
     uvicorn.run("runner:app", host="0.0.0.0", port=port, reload=False)
 
