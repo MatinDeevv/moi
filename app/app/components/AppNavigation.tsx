@@ -12,6 +12,7 @@ export default function AppNavigation() {
     { href: '/dashboard', label: 'Dashboard', icon: '📊', alwaysShow: true },
     { href: '/', label: 'Tasks', icon: '📋', alwaysShow: true },
     { href: '/sandbox', label: 'Sandbox', icon: '📁', devOnly: false },
+    { href: '/browse', label: 'Browse', icon: '🔍', devOnly: true },
     { href: '/shell', label: 'Shell', icon: '⚡', devOnly: true },
     { href: '/settings', label: 'Settings', icon: '⚙️', devOnly: false },
   ];
