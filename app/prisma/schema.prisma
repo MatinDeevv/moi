@@ -116,7 +116,6 @@ model Settings {
   // Relations
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId]) // One settings record per user
   @@index([userId])
 }
 

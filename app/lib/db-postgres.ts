@@ -336,8 +336,8 @@ export async function createEvent(data: {
 export async function getSettings(userId?: string) {
   console.log('[DB] Getting settings for user:', userId || 'global')
 
-  let settings = await prisma.settings.findUnique({
-    where: { userId: userId ?? undefined },
+  let settings = await prisma.settings.findFirst({
+    where: { userId: userId ?? null },
   })
 
   // Create default settings if not exists
@@ -365,21 +365,34 @@ export async function updateSettings(
 ) {
   console.log('[DB] Updating settings for user:', userId || 'global')
 
-  const settings = await prisma.settings.upsert({
-    where: { userId: userId ?? undefined },
-    update: {
-      runnerUrl: data.runnerUrl,
-      runnerToken: data.runnerToken,
-      preferences: data.preferences,
-      updatedAt: new Date(),
-    },
-    create: {
-      userId: userId,
-      runnerUrl: data.runnerUrl,
-      runnerToken: data.runnerToken,
-      preferences: data.preferences || {},
-    },
+  // Find existing settings
+  const existing = await prisma.settings.findFirst({
+    where: { userId: userId ?? null },
   })
+
+  let settings
+  if (existing) {
+    // Update existing
+    settings = await prisma.settings.update({
+      where: { id: existing.id },
+      data: {
+        runnerUrl: data.runnerUrl,
+        runnerToken: data.runnerToken,
+        preferences: data.preferences,
+        updatedAt: new Date(),
+      },
+    })
+  } else {
+    // Create new
+    settings = await prisma.settings.create({
+      data: {
+        userId: userId,
+        runnerUrl: data.runnerUrl,
+        runnerToken: data.runnerToken,
+        preferences: data.preferences || {},
+      },
+    })
+  }
 
   console.log('[DB] Settings updated:', settings.id)
   return settings
@@ -511,40 +524,50 @@ export async function saveSandboxFile(data: {
 }) {
   console.log('[DB] Saving sandbox file:', data.path)
 
-  const file = await prisma.sandboxFile.upsert({
+  // Check if file exists
+  const existing = await prisma.sandboxFile.findFirst({
     where: {
-      userId_path: {
-        userId: data.userId ?? undefined,
-        path: data.path,
-      },
-    },
-    update: {
-      content: data.content,
-      size: Buffer.byteLength(data.content, 'utf8'),
-      mimeType: data.mimeType,
-      isDeleted: false,
-      updatedAt: new Date(),
-    },
-    create: {
-      userId: data.userId,
+      userId: data.userId ?? null,
       path: data.path,
-      content: data.content,
-      size: Buffer.byteLength(data.content, 'utf8'),
-      mimeType: data.mimeType,
+      isDeleted: false,
     },
   })
+
+  let file
+  if (existing) {
+    // Update existing file
+    file = await prisma.sandboxFile.update({
+      where: { id: existing.id },
+      data: {
+        content: data.content,
+        size: Buffer.byteLength(data.content, 'utf8'),
+        mimeType: data.mimeType,
+        updatedAt: new Date(),
+      },
+    })
+  } else {
+    // Create new file
+    file = await prisma.sandboxFile.create({
+      data: {
+        userId: data.userId,
+        path: data.path,
+        content: data.content,
+        size: Buffer.byteLength(data.content, 'utf8'),
+        mimeType: data.mimeType,
+      },
+    })
+  }
 
   console.log('[DB] Sandbox file saved:', file.id)
   return file
 }
 
 export async function getSandboxFile(userId: string | undefined, path: string) {
-  return await prisma.sandboxFile.findUnique({
+  return await prisma.sandboxFile.findFirst({
     where: {
-      userId_path: {
-        userId: userId ?? undefined,
-        path,
-      },
+      userId: userId ?? null,
+      path,
+      isDeleted: false,
     },
   })
 }
@@ -562,19 +585,25 @@ export async function listSandboxFiles(userId?: string) {
 export async function deleteSandboxFile(userId: string | undefined, path: string) {
   console.log('[DB] Deleting sandbox file:', path)
 
-  await prisma.sandboxFile.update({
+  const file = await prisma.sandboxFile.findFirst({
     where: {
-      userId_path: {
-        userId: userId ?? undefined,
-        path,
-      },
-    },
-    data: {
-      isDeleted: true,
+      userId: userId ?? null,
+      path,
+      isDeleted: false,
     },
   })
 
-  console.log('[DB] Sandbox file marked as deleted:', path)
+  if (file) {
+    await prisma.sandboxFile.update({
+      where: { id: file.id },
+      data: {
+        isDeleted: true,
+      },
+    })
+    console.log('[DB] Sandbox file marked as deleted:', path)
+  } else {
+    console.log('[DB] Sandbox file not found:', path)
+  }
 }
 
 // ==================== UTILITY FUNCTIONS ====================

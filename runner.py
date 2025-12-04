@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 import requests
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 logger = logging.getLogger("project_me.runner")
@@ -33,8 +33,7 @@ class RunTaskRequest(BaseModel):
     description: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class RunnerResponse(BaseModel):
@@ -66,8 +65,7 @@ class SandboxRenameRequest(BaseModel):
     from_path: str = Field(..., alias="from")
     to_path: str = Field(..., alias="to")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class SandboxDeleteRequest(BaseModel):
