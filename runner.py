@@ -1,14 +1,26 @@
 """Lightweight FastAPI runner that bridges Project ME and LM Studio.
 
 Run locally with:
-    uvicorn runner:app --host 0.0.0.0 --port 4000
+    python runner.py
+
+Features:
+- Automatic ngrok tunnel management
+- LM Studio integration
+- Sandbox file operations
+- Shell command execution
 """
 from __future__ import annotations
 
+import atexit
 import datetime as _dt
+import json
 import logging
 import os
+import signal
 import subprocess
+import sys
+import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -18,9 +30,118 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 logger = logging.getLogger("project_me.runner")
-logging.basicConfig(level=os.getenv("RUNNER_LOG_LEVEL", "INFO"))
+logging.basicConfig(
+    level=os.getenv("RUNNER_LOG_LEVEL", "INFO"),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
-app = FastAPI(title="Project ME Runner", version="0.1.0")
+app = FastAPI(title="Project ME Runner", version="0.2.0")
+
+# ========== NGROK MANAGEMENT ==========
+ngrok_process: Optional[subprocess.Popen] = None
+ngrok_url: Optional[str] = None
+ngrok_lock = threading.Lock()
+
+
+def get_ngrok_url() -> Optional[str]:
+    """Get the current ngrok public URL from the local API."""
+    try:
+        response = requests.get("http://127.0.0.1:4040/api/tunnels", timeout=2)
+        if response.ok:
+            data = response.json()
+            tunnels = data.get("tunnels", [])
+            for tunnel in tunnels:
+                if tunnel.get("proto") == "https":
+                    return tunnel.get("public_url")
+    except Exception as e:
+        logger.debug(f"[ngrok] Could not get tunnel info: {e}")
+    return None
+
+
+def start_ngrok(port: int) -> Optional[str]:
+    """Start ngrok and return the public URL."""
+    global ngrok_process, ngrok_url
+
+    with ngrok_lock:
+        # Check if ngrok is already running
+        existing_url = get_ngrok_url()
+        if existing_url:
+            # Check if it's pointing to our port
+            try:
+                response = requests.get("http://127.0.0.1:4040/api/tunnels", timeout=2)
+                data = response.json()
+                for tunnel in data.get("tunnels", []):
+                    config = tunnel.get("config", {})
+                    addr = config.get("addr", "")
+                    if str(port) in addr:
+                        logger.info(f"[ngrok] Already running: {existing_url}")
+                        ngrok_url = existing_url
+                        return existing_url
+            except:
+                pass
+
+            logger.warning("[ngrok] Running but pointing to wrong port, restarting...")
+            stop_ngrok()
+
+        logger.info(f"[ngrok] Starting tunnel for port {port}...")
+
+        try:
+            # Start ngrok process
+            ngrok_process = subprocess.Popen(
+                ["ngrok", "http", str(port), "--log=stdout"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+            )
+
+            # Wait for ngrok to start and get the URL
+            for _ in range(30):  # Wait up to 15 seconds
+                time.sleep(0.5)
+                url = get_ngrok_url()
+                if url:
+                    ngrok_url = url
+                    logger.info(f"[ngrok] Tunnel established: {url}")
+                    print(f"\n{'='*60}")
+                    print(f"🌐 NGROK URL: {url}")
+                    print(f"{'='*60}\n")
+                    return url
+
+            logger.error("[ngrok] Failed to get tunnel URL after 15 seconds")
+            return None
+
+        except FileNotFoundError:
+            logger.error("[ngrok] ngrok executable not found. Please install ngrok.")
+            return None
+        except Exception as e:
+            logger.exception(f"[ngrok] Failed to start: {e}")
+            return None
+
+
+def stop_ngrok():
+    """Stop the ngrok process."""
+    global ngrok_process, ngrok_url
+
+    with ngrok_lock:
+        if ngrok_process:
+            logger.info("[ngrok] Stopping tunnel...")
+            try:
+                ngrok_process.terminate()
+                ngrok_process.wait(timeout=5)
+            except:
+                ngrok_process.kill()
+            ngrok_process = None
+            ngrok_url = None
+
+
+def cleanup():
+    """Cleanup function called on exit."""
+    logger.info("[Runner] Shutting down...")
+    stop_ngrok()
+
+
+# Register cleanup handlers
+atexit.register(cleanup)
 
 # Sandbox directory - absolute path
 SANDBOX_DIR = Path(r"C:\Users\matin\moi\docs\sandbox")
@@ -95,6 +216,18 @@ def health() -> Dict[str, Any]:
         "runner": "online",
         "lm_endpoint": LM_ENDPOINT,
         "lm_model": LM_MODEL,
+        "ngrok_url": ngrok_url,
+    }
+
+
+@app.get("/ngrok-url")
+def get_ngrok_status() -> Dict[str, Any]:
+    """Get current ngrok tunnel URL."""
+    current_url = get_ngrok_url()
+    return {
+        "ok": True,
+        "ngrok_url": current_url,
+        "active": current_url is not None
     }
 
 
@@ -285,5 +418,39 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.getenv("RUNNER_PORT", "4000"))
+    auto_ngrok = os.getenv("AUTO_NGROK", "true").lower() in ("true", "1", "yes")
+
+    # Handle Ctrl+C gracefully
+    def signal_handler(sig, frame):
+        logger.info("\n[Runner] Received shutdown signal...")
+        cleanup()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    print(f"\n{'='*60}")
+    print(f"🚀 PROJECT ME RUNNER v0.2.0")
+    print(f"{'='*60}")
+    print(f"📡 Port: {port}")
+    print(f"🤖 LM Studio: {LM_ENDPOINT}")
+    print(f"📁 Sandbox: {SANDBOX_DIR}")
+    print(f"{'='*60}\n")
+
+    # Start ngrok if enabled
+    if auto_ngrok:
+        tunnel_url = start_ngrok(port)
+        if tunnel_url:
+            print(f"✅ ngrok tunnel ready!")
+            print(f"   Use this URL in your Vercel Settings: {tunnel_url}")
+        else:
+            print("⚠️  ngrok failed to start. Runner will still work locally.")
+            print("   You can manually run: ngrok http 4000")
+    else:
+        print("ℹ️  Auto-ngrok disabled. Set AUTO_NGROK=true to enable.")
+
+    print(f"\n{'='*60}\n")
+
+    # Run the server
     uvicorn.run("runner:app", host="0.0.0.0", port=port, reload=False)
 
