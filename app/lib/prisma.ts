@@ -1,15 +1,14 @@
 /**
- * Prisma Client with Accelerate Extension
- * Uses Prisma Accelerate for cloud database connections
+ * Prisma Client for database connections
+ * Uses standard PostgreSQL connection
  */
 
 import { PrismaClient } from '@prisma/client'
-import { withAccelerate } from '@prisma/extension-accelerate'
 
 const prismaClientSingleton = () => {
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  }).$extends(withAccelerate())
+  })
 }
 
 declare const globalThis: {

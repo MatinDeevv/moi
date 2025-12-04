@@ -2,7 +2,7 @@
   "version": 2,
   "framework": "nextjs",
   "env": {
-    "DATABASE_URL": "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza18zdXkycHlZb2dIV1Z6N2NhVThNeEYiLCJhcGlfa2V5IjoiMDFLQk5KMkpWWE1KUUNSWThIWDhTNkFENE4iLCJ0ZW5hbnRfaWQiOiIyY2M1ZDZlMTgyOTRlZDhlYTRmOTIzYmNmNTkxMjM0N2UwODJiZDc3YTZlODg3ZmUwNDJiMzk5YzViYWMyOGZjIiwiaW50ZXJuYWxfc2VjcmV0IjoiNGVkMDBhNzItNGYzNi00MjIxLTk0ZmEtNWJmM2QxZGM2MGFhIn0.gvZ_fF54nD2e3JZ-05XPyWGHbwXjBoPrvkQdWJEB7FY",
+    "DATABASE_URL": "postgres://2cc5d6e18294ed8ea4f923bcf5912347e082bd77a6e887fe042b399c5bac28fc:sk_3uy2pyYogHWVz7caU8MxF@db.prisma.io:5432/postgres?sslmode=require",
     "DIRECT_DATABASE_URL": "postgres://2cc5d6e18294ed8ea4f923bcf5912347e082bd77a6e887fe042b399c5bac28fc:sk_3uy2pyYogHWVz7caU8MxF@db.prisma.io:5432/postgres?sslmode=require"
   }
 }
