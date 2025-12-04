@@ -108,6 +108,7 @@ export async function getTasks(filters?: {
   userId?: string
   status?: string
   type?: string
+  tag?: string
   isPublic?: boolean
   limit?: number
   offset?: number
@@ -126,6 +127,10 @@ export async function getTasks(filters?: {
 
   if (filters?.type) {
     where.type = filters.type
+  }
+
+  if (filters?.tag) {
+    where.tags = { has: filters.tag }
   }
 
   if (filters?.isPublic !== undefined) {
