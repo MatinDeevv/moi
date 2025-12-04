@@ -7,16 +7,20 @@ Features:
 - Automatic ngrok tunnel management
 - LM Studio integration
 - Sandbox file operations
-- Shell command execution
+- System file browser (browse any folder)
+- Code analysis (send files to LLM)
+- Shell command execution (with optional admin)
 """
 from __future__ import annotations
 
 import atexit
 import datetime as _dt
+import fnmatch
 import json
 import logging
 import os
 import signal
+import string
 import subprocess
 import sys
 import threading
@@ -35,7 +39,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
-app = FastAPI(title="Project ME Runner", version="0.2.0")
+app = FastAPI(title="Project ME Runner", version="0.3.0")
 
 # ========== NGROK MANAGEMENT ==========
 ngrok_process: Optional[subprocess.Popen] = None
@@ -196,6 +200,7 @@ class SandboxDeleteRequest(BaseModel):
 class ShellRequest(BaseModel):
     command: str
     cwd: Optional[str] = None
+    admin: bool = False  # Run with elevated privileges
 
 
 class ShellResponse(BaseModel):
@@ -203,6 +208,28 @@ class ShellResponse(BaseModel):
     output: str
     exitCode: int
     error: Optional[str] = None
+
+
+# New: Code Analysis Request
+class CodeAnalysisRequest(BaseModel):
+    files: List[str]  # List of file paths (relative to sandbox or absolute)
+    prompt: str  # What to analyze/do with the files
+    include_content: bool = True  # Include file content in LLM context
+
+
+class CodeAnalysisResponse(BaseModel):
+    ok: bool
+    analysis: Optional[str] = None
+    files_analyzed: List[str] = []
+    error: Optional[str] = None
+    raw: Optional[Dict[str, Any]] = None
+
+
+# New: System File Browser Request
+class FileBrowserRequest(BaseModel):
+    path: str  # Absolute path to browse
+    recursive: bool = False  # Include subdirectories
+    pattern: Optional[str] = None  # Glob pattern filter (e.g., "*.py")
 
 
 LM_ENDPOINT = os.getenv("LM_ENDPOINT", "http://127.0.0.1:1234/v1/chat/completions")
@@ -381,20 +408,32 @@ def sandbox_delete(req: SandboxDeleteRequest) -> Dict[str, Any]:
 
 @app.post("/shell")
 def shell(req: ShellRequest) -> ShellResponse:
-    """Execute shell command in sandbox directory."""
+    """Execute shell command. Optionally with admin privileges."""
     try:
         cwd = SANDBOX_DIR / req.cwd if req.cwd else SANDBOX_DIR
 
-        logger.info("[Shell] Running command: %s (cwd=%s)", req.command, cwd)
+        logger.info("[Shell] Running command: %s (cwd=%s, admin=%s)", req.command, cwd, req.admin)
 
-        result = subprocess.run(
-            req.command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            cwd=str(cwd),
-            timeout=30
-        )
+        if req.admin and sys.platform == "win32":
+            # Run with elevated privileges on Windows using PowerShell
+            # This will prompt UAC if not already elevated
+            ps_command = f'Start-Process powershell -ArgumentList "-NoProfile -Command {req.command}" -Verb RunAs -Wait -PassThru'
+            result = subprocess.run(
+                ["powershell", "-NoProfile", "-Command", ps_command],
+                capture_output=True,
+                text=True,
+                cwd=str(cwd),
+                timeout=60
+            )
+        else:
+            result = subprocess.run(
+                req.command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                cwd=str(cwd),
+                timeout=30
+            )
 
         output = result.stdout + result.stderr
         logger.info("[Shell] Command completed with exit code %d", result.returncode)
@@ -414,6 +453,257 @@ def shell(req: ShellRequest) -> ShellResponse:
         return ShellResponse(ok=False, output=str(exc), exitCode=1, error=str(exc))
 
 
+# ========== SYSTEM FILE BROWSER ==========
+
+@app.get("/browse")
+def browse_system(path: str = "", recursive: bool = False, pattern: Optional[str] = None) -> Dict[str, Any]:
+    """Browse any directory on the system (not limited to sandbox).
+
+    Args:
+        path: Absolute path to browse. Empty string = list drives on Windows
+        recursive: If true, include subdirectories
+        pattern: Glob pattern to filter files (e.g., "*.py", "*.txt")
+    """
+    try:
+        # If no path, list drives on Windows or root on Unix
+        if not path or path == "":
+            if sys.platform == "win32":
+                import string
+                drives = []
+                for letter in string.ascii_uppercase:
+                    drive = f"{letter}:\\"
+                    if Path(drive).exists():
+                        drives.append({"name": drive, "type": "drive"})
+                return {"ok": True, "entries": drives, "path": ""}
+            else:
+                path = "/"
+
+        target_path = Path(path)
+
+        if not target_path.exists():
+            return {"ok": False, "entries": [], "error": f"Path does not exist: {path}"}
+
+        if not target_path.is_dir():
+            # If it's a file, return file info
+            return {
+                "ok": True,
+                "entries": [{
+                    "name": target_path.name,
+                    "type": "file",
+                    "size": target_path.stat().st_size,
+                    "path": str(target_path)
+                }],
+                "path": str(target_path.parent)
+            }
+
+        entries = []
+
+        # Add parent directory link
+        if target_path.parent != target_path:
+            entries.append({"name": "..", "type": "dir", "path": str(target_path.parent)})
+
+        if recursive and pattern:
+            # Recursive with pattern
+            for item in target_path.rglob(pattern):
+                try:
+                    entries.append({
+                        "name": item.name,
+                        "type": "dir" if item.is_dir() else "file",
+                        "path": str(item),
+                        "relative": str(item.relative_to(target_path))
+                    })
+                except:
+                    pass
+        else:
+            # Non-recursive listing
+            for item in target_path.iterdir():
+                try:
+                    if pattern and not item.is_dir():
+                        import fnmatch
+                        if not fnmatch.fnmatch(item.name, pattern):
+                            continue
+
+                    entry = {
+                        "name": item.name,
+                        "type": "dir" if item.is_dir() else "file",
+                        "path": str(item)
+                    }
+
+                    if item.is_file():
+                        try:
+                            entry["size"] = item.stat().st_size
+                        except:
+                            pass
+
+                    entries.append(entry)
+                except PermissionError:
+                    # Skip files/dirs we can't access
+                    pass
+
+        logger.info("[Browse] Listed %d entries in %s", len(entries), path)
+        return {"ok": True, "entries": entries, "path": str(target_path)}
+
+    except PermissionError:
+        return {"ok": False, "entries": [], "error": f"Permission denied: {path}"}
+    except Exception as exc:
+        logger.exception("[Browse] Error")
+        return {"ok": False, "entries": [], "error": str(exc)}
+
+
+@app.get("/browse/read")
+def browse_read_file(path: str) -> Dict[str, Any]:
+    """Read a file from anywhere on the system."""
+    try:
+        file_path = Path(path)
+
+        if not file_path.exists():
+            return {"ok": False, "error": f"File does not exist: {path}"}
+
+        if not file_path.is_file():
+            return {"ok": False, "error": f"Path is not a file: {path}"}
+
+        # Check file size (limit to 1MB for safety)
+        size = file_path.stat().st_size
+        if size > 1024 * 1024:
+            return {"ok": False, "error": f"File too large ({size} bytes). Max 1MB."}
+
+        # Try to read as text
+        try:
+            content = file_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            # Try with different encoding
+            try:
+                content = file_path.read_text(encoding="latin-1")
+            except:
+                return {"ok": False, "error": "File is not text or has unsupported encoding"}
+
+        logger.info("[Browse] Read file %s (%d bytes)", path, len(content))
+        return {
+            "ok": True,
+            "content": content,
+            "path": str(file_path),
+            "size": size,
+            "name": file_path.name
+        }
+
+    except PermissionError:
+        return {"ok": False, "error": f"Permission denied: {path}"}
+    except Exception as exc:
+        logger.exception("[Browse] Read error")
+        return {"ok": False, "error": str(exc)}
+
+
+# ========== CODE ANALYSIS ==========
+
+@app.post("/analyze")
+def analyze_code(req: CodeAnalysisRequest) -> CodeAnalysisResponse:
+    """Send files to LLM for code analysis.
+
+    This endpoint:
+    1. Reads the specified files
+    2. Builds a context with file contents
+    3. Sends to LLM with your prompt
+    4. Returns the analysis
+    """
+    try:
+        files_content = []
+        files_analyzed = []
+
+        for file_path_str in req.files:
+            try:
+                # Support both absolute paths and sandbox-relative paths
+                if Path(file_path_str).is_absolute():
+                    file_path = Path(file_path_str)
+                else:
+                    file_path = SANDBOX_DIR / file_path_str
+
+                if not file_path.exists():
+                    logger.warning("[Analyze] File not found: %s", file_path_str)
+                    continue
+
+                if not file_path.is_file():
+                    logger.warning("[Analyze] Not a file: %s", file_path_str)
+                    continue
+
+                # Read file content
+                try:
+                    content = file_path.read_text(encoding="utf-8")
+                except UnicodeDecodeError:
+                    content = file_path.read_text(encoding="latin-1")
+
+                if req.include_content:
+                    files_content.append(f"=== File: {file_path.name} ===\n```\n{content}\n```\n")
+                else:
+                    files_content.append(f"=== File: {file_path.name} (path: {file_path}) ===\n")
+
+                files_analyzed.append(str(file_path))
+                logger.info("[Analyze] Loaded file: %s (%d bytes)", file_path.name, len(content))
+
+            except Exception as e:
+                logger.warning("[Analyze] Error reading %s: %s", file_path_str, e)
+
+        if not files_analyzed:
+            return CodeAnalysisResponse(
+                ok=False,
+                error="No files could be read",
+                files_analyzed=[]
+            )
+
+        # Build LLM prompt
+        files_context = "\n".join(files_content)
+        full_prompt = f"""You are a code analysis expert. Analyze the following files and respond to the user's request.
+
+{files_context}
+
+User Request: {req.prompt}
+
+Provide a detailed, helpful response."""
+
+        lm_payload = {
+            "model": LM_MODEL,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an expert code analyst and software engineer. Analyze code carefully and provide detailed, accurate responses."
+                },
+                {
+                    "role": "user",
+                    "content": full_prompt
+                }
+            ],
+            "temperature": 0.3,  # Lower temperature for more focused analysis
+        }
+
+        logger.info("[Analyze] Sending %d files to LLM", len(files_analyzed))
+
+        try:
+            lm_res = requests.post(LM_ENDPOINT, json=lm_payload, timeout=120)
+            lm_res.raise_for_status()
+            lm_json = lm_res.json()
+
+            # Extract the response text
+            analysis = lm_json.get("choices", [{}])[0].get("message", {}).get("content", "No response")
+
+            return CodeAnalysisResponse(
+                ok=True,
+                analysis=analysis,
+                files_analyzed=files_analyzed,
+                raw=lm_json
+            )
+
+        except requests.RequestException as exc:
+            logger.exception("[Analyze] LM Studio error")
+            return CodeAnalysisResponse(
+                ok=False,
+                error=f"LLM error: {exc}",
+                files_analyzed=files_analyzed
+            )
+
+    except Exception as exc:
+        logger.exception("[Analyze] Error")
+        return CodeAnalysisResponse(ok=False, error=str(exc), files_analyzed=[])
+
+
 if __name__ == "__main__":
     import uvicorn
 
@@ -430,11 +720,20 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
 
     print(f"\n{'='*60}")
-    print(f"🚀 PROJECT ME RUNNER v0.2.0")
+    print(f"🚀 PROJECT ME RUNNER v0.3.0")
     print(f"{'='*60}")
     print(f"📡 Port: {port}")
     print(f"🤖 LM Studio: {LM_ENDPOINT}")
     print(f"📁 Sandbox: {SANDBOX_DIR}")
+    print(f"{'='*60}")
+    print(f"📋 Endpoints:")
+    print(f"   /health       - Health check")
+    print(f"   /run-task     - Execute task with LLM")
+    print(f"   /analyze      - Code analysis with LLM")
+    print(f"   /browse       - System file browser")
+    print(f"   /browse/read  - Read any file")
+    print(f"   /shell        - Execute commands (admin optional)")
+    print(f"   /sandbox/*    - Sandbox file operations")
     print(f"{'='*60}\n")
 
     # Start ngrok if enabled

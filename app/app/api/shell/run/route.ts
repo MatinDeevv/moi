@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/shell/run
- * Body: { command: string, cwd?: string }
+ * Body: { command: string, cwd?: string, admin?: boolean }
  */
 export async function POST(request: NextRequest) {
   console.log(`[API/shell/run] POST /api/shell/run`);
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { command, cwd } = body;
+    const { command, cwd, admin = false } = body;
 
     if (!command) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[API/shell/run] command="${command}", cwd="${cwd || 'default'}"`);
+    console.log(`[API/shell/run] command="${command}", cwd="${cwd || 'default'}", admin=${admin}`);
 
     const settings = await getSettings();
     const runnerBase = settings.runnerUrl || process.env.RUNNER_BASE_URL;
@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
     const response = await fetch(runnerUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ command, cwd }),
-      signal: AbortSignal.timeout(30000), // 30 second timeout for commands
+      body: JSON.stringify({ command, cwd, admin }),
+      signal: AbortSignal.timeout(admin ? 120000 : 30000), // 2 min for admin, 30s for normal
     });
 
     const text = await response.text();
