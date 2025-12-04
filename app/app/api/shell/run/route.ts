@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+      'User-Agent': 'ProjectME/1.0',
     };
     if (runnerToken) {
       headers['x-runner-token'] = runnerToken;

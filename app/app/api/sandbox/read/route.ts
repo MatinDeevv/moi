@@ -31,7 +31,10 @@ export async function GET(request: NextRequest) {
     const runnerToken = settings.runnerToken || process.env.RUNNER_TOKEN || null;
     const runnerUrl = `${runnerBase}/sandbox/read?path=${encodeURIComponent(path)}`;
 
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {
+      'ngrok-skip-browser-warning': 'true',
+      'User-Agent': 'ProjectME/1.0',
+    };
     if (runnerToken) {
       headers['x-runner-token'] = runnerToken;
     }

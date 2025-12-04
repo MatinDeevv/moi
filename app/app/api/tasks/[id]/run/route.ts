@@ -91,6 +91,8 @@ export async function POST(
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        'User-Agent': 'ProjectME/1.0',
       };
 
       if (runnerToken) {

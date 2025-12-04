@@ -37,6 +37,10 @@ export async function GET(request: NextRequest) {
 
       const response = await fetch(testUrl, {
         method: 'GET',
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          'User-Agent': 'ProjectME/1.0',
+        },
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
 
