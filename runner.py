@@ -107,7 +107,7 @@ def start_ngrok(port: int) -> Optional[str]:
                     ngrok_url = url
                     logger.info(f"[ngrok] Tunnel established: {url}")
                     print(f"\n{'='*60}")
-                    print(f"🌐 NGROK URL: {url}")
+                    print(f"[NGROK] URL: {url}")
                     print(f"{'='*60}\n")
                     return url
 
@@ -720,13 +720,13 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
 
     print(f"\n{'='*60}")
-    print(f"🚀 PROJECT ME RUNNER v0.3.0")
+    print(f"[*] PROJECT ME RUNNER v0.3.0")
     print(f"{'='*60}")
-    print(f"📡 Port: {port}")
-    print(f"🤖 LM Studio: {LM_ENDPOINT}")
-    print(f"📁 Sandbox: {SANDBOX_DIR}")
+    print(f"[>] Port: {port}")
+    print(f"[>] LM Studio: {LM_ENDPOINT}")
+    print(f"[>] Sandbox: {SANDBOX_DIR}")
     print(f"{'='*60}")
-    print(f"📋 Endpoints:")
+    print(f"[i] Endpoints:")
     print(f"   /health       - Health check")
     print(f"   /run-task     - Execute task with LLM")
     print(f"   /analyze      - Code analysis with LLM")
@@ -740,13 +740,13 @@ if __name__ == "__main__":
     if auto_ngrok:
         tunnel_url = start_ngrok(port)
         if tunnel_url:
-            print(f"✅ ngrok tunnel ready!")
+            print(f"[OK] ngrok tunnel ready!")
             print(f"   Use this URL in your Vercel Settings: {tunnel_url}")
         else:
-            print("⚠️  ngrok failed to start. Runner will still work locally.")
+            print("[WARN] ngrok failed to start. Runner will still work locally.")
             print("   You can manually run: ngrok http 4000")
     else:
-        print("ℹ️  Auto-ngrok disabled. Set AUTO_NGROK=true to enable.")
+        print("[INFO] Auto-ngrok disabled. Set AUTO_NGROK=true to enable.")
 
     print(f"\n{'='*60}\n")
 
