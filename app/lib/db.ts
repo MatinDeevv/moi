@@ -618,6 +618,9 @@ export async function healthCheck() {
   }
 }
 
+// Alias for API compatibility
+export const getDatabaseHealth = healthCheck
+
 export async function getDatabaseStats() {
   const [
     taskCount,
